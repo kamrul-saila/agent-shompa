@@ -1,0 +1,8 @@
+[
+  {
+    "AllowedOrigins": ["https://kamrul-saila.github.io"],
+    "AllowedMethods": ["GET", "PUT"],
+    "AllowedHeaders": ["*"],
+    "MaxAgeSeconds": 3600
+  }
+]
