@@ -92,7 +92,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 
 <section class="band view" id="v-agent">
   <h1>Agent</h1>
-  <p class="sub">The weekly audit checks every website for Bing. Nothing changes until you choose. Accept and Rewrite run straight away, and the old version is saved as a backup on the website.</p>
+  <p class="sub">The weekly audit checks every website for Bing. Nothing changes until you choose. Accept and Rewrite run straight away. The old version is always saved first, so any change can be undone on the Changes tab.</p>
   <div class="box"><div class="form"><label>Website<select id="fsite"></select></label><label>Problem<select id="fkind"></select></label><button id="frun">Run audit now</button></div></div>
   <div id="flist2"></div>
   <details class="box" style="--c:var(--line)"><summary style="cursor:pointer;font-weight:700">History <small class="muted" id="fhcount"></small></summary><div id="fhist"></div></details>
@@ -259,7 +259,7 @@ function renderSites(){
    <label>WordPress username<input data-f="wpu" name="shompa-wpu-${s.id}" value="${esc(s.wp_username)}" autocomplete="off" data-lpignore="true"></label>
    <label>App password ${p?`<span class="pill ok">Saved ${when(p)}</span>`:'<span class="pill warn">Not saved</span>'}<input data-f="wpp" type="text" name="shompa-wpp-${s.id}" autocomplete="off" data-lpignore="true" spellcheck="false" class="mask" placeholder="${p?'Type a new one to replace':'xxxx xxxx xxxx xxxx'}"></label>
    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-save>Save</button><button data-wpt>Test WordPress</button><button data-del>Remove</button></div>
-   <div style="grid-column:1/-1;font-size:13px" class="${s.connector_ok?'ok':s.connector_ok===false?'bad':'muted'}">${s.connector_msg?esc(s.connector_msg):'WordPress not tested yet. Install Shompa Connector 0.5.0, then press Test WordPress.'}</div></div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
+   <div style="grid-column:1/-1;font-size:13px" class="${s.connector_ok?'ok':s.connector_ok===false?'bad':'muted'}">${s.connector_msg?esc(s.connector_msg):'Not tested yet. Press Test WordPress (the WordPress user must be an Editor or Administrator).'}</div></div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
 }
 const GLOBAL=[['bing_api_key','Bing Webmaster API key','Bing Webmaster Tools → Settings → API access'],['ai_key_claude','Claude API key','console.anthropic.com'],['ai_key_openai','OpenAI API key','platform.openai.com'],['ai_key_gemini','Gemini API key','aistudio.google.com'],['ubersuggest_api_key','Ubersuggest API key','Ubersuggest account → API'],['amazon_creators_id','Amazon Creators API credential ID','Associates Central → Tools → Creators API'],['amazon_creators_secret','Amazon Creators API secret','Associates Central → Tools → Creators API']];
 function renderConns(){
@@ -420,8 +420,8 @@ function renderPlan(){
 const met=m=>m?`${m.clicks} clicks · ${m.impr} impr${m.pos?` · #${m.pos}`:''}`:'—';
 function renderChanges(){
   const V={works:'ok',no_effect:'warn',worse:'bad',too_early:'muted'};
-  $('chtable').tBodies[0].innerHTML=CH.map(c=>`<tr><td style="white-space:nowrap">${new Date(c.made_at).toLocaleDateString([],{day:'numeric',month:'short'})}</td><td>${esc(dom(c.site_id))}</td><td>${esc(c.what)}</td><td>${met(c.before)}</td><td>${met(c.d7)}</td><td>${met(c.d14)}</td><td>${met(c.d28)}</td><td>${['draft','trash'].includes(c.kind)?'<span class="pill muted">removed</span>':`<span class="pill ${V[c.verdict]||'muted'}">${(c.verdict||'waiting').replace('_',' ')}</span>`}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">No changes yet.</td></tr>';
-  const by={};CH.filter(c=>c.verdict&&c.verdict!=='too_early').forEach(c=>{const k=dom(c.site_id)+'|'+c.kind;(by[k]=by[k]||{works:0,no_effect:0,worse:0})[c.verdict]++});
+  $('chtable').tBodies[0].innerHTML=CH.map(c=>`<tr><td style="white-space:nowrap">${new Date(c.made_at).toLocaleDateString([],{day:'numeric',month:'short'})}</td><td>${esc(dom(c.site_id))}</td><td>${esc(c.what)}</td><td>${met(c.before)}</td><td>${met(c.d7)}</td><td>${met(c.d14)}</td><td>${met(c.d28)}</td><td>${c.verdict==='undone'?'<span class="pill muted">undone</span>':['draft','trash'].includes(c.kind)?'<span class="pill muted">removed</span>':`<span class="pill ${V[c.verdict]||'muted'}">${(c.verdict||'waiting').replace('_',' ')}</span>`}${c.backup_id&&c.verdict!=='undone'?`<div><button data-undo="${c.id}" style="min-height:34px;padding:4px 10px;margin-top:6px;font-size:13px">Undo</button></div>`:''}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">No changes yet.</td></tr>';
+  const by={};CH.filter(c=>['works','no_effect','worse'].includes(c.verdict)&&!['draft','trash'].includes(c.kind)).forEach(c=>{const k=dom(c.site_id)+'|'+c.kind;(by[k]=by[k]||{works:0,no_effect:0,worse:0})[c.verdict]++});
   const NAME={title:'New titles',rewrite:'Rewrites',new_article:'New articles',indexnow:'Sending to Bing'};
   $('lessons').innerHTML=Object.entries(by).map(([k,v])=>{const [d,kind]=k.split('|'),n=v.works+v.no_effect+v.worse;return `<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:14px"><b>${esc(d)}</b> · ${NAME[kind]||kind}: <span class="ok">${v.works} of ${n} worked</span>${v.worse?`, <span class="bad">${v.worse} made it worse</span>`:''}</div>`}).join('')||'<p class="sub">Results appear 7–28 days after the first changes.</p>';
 }
@@ -435,6 +435,8 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
     card.querySelectorAll('button').forEach(x=>x.disabled=true);
     try{await agent({action:'decide',finding:+card.dataset.f,decision:d});const f=F.find(x=>x.id===+card.dataset.f);if(f)f.status=['manual','reject'].includes(d)?(d==='reject'?'rejected':'manual'):'working';renderFindings2();setTimeout(loadAgent,2500)}
     catch(err){toast(err.message,true);card.querySelectorAll('button').forEach(x=>x.disabled=false)}}
+  if(b.dataset.undo){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to undo';return}
+    b.disabled=true;try{const j=await agent({action:'undo',change:+b.dataset.undo});toast(j.message);loadAgent()}catch(err){toast(err.message,true);b.disabled=false}}
   if(b.hasAttribute('data-wpt')){const row=b.closest('.row');b.disabled=true;b.textContent='Testing…';
     try{const j=await agent({action:'wp_test',site:row.dataset.id});toast(j.message)}catch(err){toast(err.message,true)}finally{await load();}}
 });
