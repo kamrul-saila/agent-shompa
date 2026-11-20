@@ -499,7 +499,7 @@ async function loadSocial(){try{[SA,SC,SP]=await Promise.all([api('shompa_social
 function renderConnect(){
   $('guri').textContent=CB('google');$('furi').textContent=CB('facebook');$('puri').textContent=CB('pinterest');
   $('glogin').innerHTML=secretRow('google_client_id','Google Client ID','Google Cloud → Credentials → OAuth 2.0 Client IDs (ends with .apps.googleusercontent.com)')+secretRow('google_client_secret','Google Client secret','Same OAuth client → Client secret');
-  $('flogin').innerHTML=secretRow('facebook_app_id','Facebook App ID','developers.facebook.com → your app → App settings → Basic')+secretRow('facebook_app_secret','Facebook App secret','Same page → App secret (Show)');
+  $('flogin').innerHTML=secretRow('facebook_app_id','Facebook App ID','developers.facebook.com → your app → App settings → Basic')+secretRow('facebook_app_secret','Facebook App secret','Same page → App secret (Show)')+secretRow('facebook_config_id','Facebook Login configuration ID','Facebook Login for Business → Configurations → your configuration');
   $('plogin').innerHTML=secretRow('pinterest_app_id','Pinterest App ID','developers.pinterest.com → My apps → your app')+secretRow('pinterest_app_secret','Pinterest App secret key','Same page → App secret key');
   const g=has('google_refresh_token');$('gconn').innerHTML=g?`<span class="pill ok">Connected ${when(g)}</span>`:'<span class="pill warn">Not connected</span>';$('gdis').hidden=!g;$('gconnect').textContent=g?'Connect again':'Connect Google';
   const fp=SC.filter(c=>c.network==='facebook').length,pb=SC.filter(c=>c.network==='pinterest').length;
