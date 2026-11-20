@@ -56,7 +56,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 </head>
 <body>
 <header><div class="band"><b>Agent Shompa</b>
-  <nav id="nav" hidden><a href="#home">Today</a><a href="#sites">Websites</a><a href="#connections">Connections</a><a href="#files">Files</a><a href="#" id="out">Sign out</a></nav>
+  <nav id="nav" hidden><a href="#home">Today</a><a href="#agent">Agent</a><a href="#content">Content</a><a href="#changes">Changes</a><a href="#sites">Websites</a><a href="#connections">Connections</a><a href="#files">Files</a><a href="#" id="out">Sign out</a></nav>
 </div></header>
 <main>
 <section class="band view" id="v-login">
@@ -74,6 +74,8 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 
 <section class="band view" id="v-home">
   <h1>Today</h1>
+  <div class="box" style="--c:var(--org)"><h2>Agent's work</h2><div class="kpis" id="ak"></div>
+    <div id="alog" style="margin-top:12px"></div></div>
   <div class="box" style="--c:var(--teal)">
     <h2 style="display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center">Bing <small class="muted" id="brange" style="font-size:14px;font-weight:400"></small>
       <button id="bsync" style="margin-left:auto;min-height:38px;padding:6px 14px">Refresh from Bing</button></h2>
@@ -86,6 +88,28 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
   <div class="box"><h2>Websites on Bing <small class="muted" style="font-size:13px;font-weight:400">last 28 days vs the 28 before</small></h2><div class="scroll"><table class="stack" id="btable"><thead><tr><th>Website</th><th class="n">Clicks</th><th class="n">Change</th><th class="n">Impressions</th><th class="n">Avg position</th><th class="n">Keywords</th><th class="n">Top 10</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
   <div class="kpis" id="hk" style="margin-top:16px"></div>
   <div class="box" style="--c:var(--teal)"><h2>Link with Agent Saila</h2><p class="sub" id="saila">Checking…</p></div>
+</section>
+
+<section class="band view" id="v-agent">
+  <h1>Agent</h1>
+  <p class="sub">The weekly audit checks every website for Bing. Nothing changes until you choose. Accept and Rewrite run straight away, and the old version is saved as a backup on the website.</p>
+  <div class="box"><div class="form"><label>Website<select id="fsite"></select></label><label>Problem<select id="fkind"></select></label><button id="frun">Run audit now</button></div></div>
+  <div id="flist2"></div>
+  <details class="box" style="--c:var(--line)"><summary style="cursor:pointer;font-weight:700">History <small class="muted" id="fhcount"></small></summary><div id="fhist"></div></details>
+</section>
+
+<section class="band view" id="v-content">
+  <h1>Content</h1>
+  <p class="sub">One unique 2000+ word article per website per day, published automatically between 7 am and 4 pm US Eastern time. The plan comes from Bing searches your sites already appear for, plus new topics. Review articles (Amazon products) switch on once the Amazon connection is built.</p>
+  <div class="box"><div class="form"><label>Website<select id="csite"></select></label><button id="cplan">Plan 7 more days</button><button class="pri" id="cwrite">Write next article now</button></div><p class="sub" id="cmsg" style="margin-top:8px"></p></div>
+  <div class="box scroll"><table class="stack" id="ctable"><thead><tr><th>Date</th><th>Website</th><th>Keyword</th><th>Source</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section class="band view" id="v-changes">
+  <h1>Changes</h1>
+  <p class="sub">Every change is measured on Bing (28-day clicks, impressions and position of that page) before, and after 7, 14 and 28 days. The agent learns what works for each website.</p>
+  <div class="box" style="--c:var(--grn)"><h2>What works, per website</h2><div id="lessons"></div></div>
+  <div class="box scroll"><table class="stack" id="chtable"><thead><tr><th>Date</th><th>Website</th><th>Change</th><th>Before</th><th>Day 7</th><th>Day 14</th><th>Day 28</th><th>Result</th></tr></thead><tbody></tbody></table></div>
 </section>
 
 <section class="band view" id="v-sites">
@@ -119,6 +143,10 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     </form>
     <p class="sub" id="uprog" style="margin-top:10px"></p></div>
   <div class="box"><h2>Stored files <small class="muted" id="fcount"></small></h2><div id="flist"></div></div>
+  <div class="box" style="--c:var(--org)"><h2>Agent Saila swatch photos</h2>
+    <p class="sub" id="mstat">Checking…</p>
+    <div style="margin-top:10px"><button class="pri" id="mgo" hidden>Move them to R2</button></div>
+    <p class="sub" id="mprog" style="margin-top:8px"></p></div>
 </section>
 </main>
 <div class="toast" id="toast" role="status"></div>
@@ -153,7 +181,7 @@ let sites=[],secrets=[];
 async function load(){
   [sites,secrets]=await Promise.all([api('shompa_sites?select=*&deleted_at=is.null&order=created_at'),api('shompa_secret_index?select=name,site_id,updated_at')]);
   const s=await api('shompa_settings?select=*');if(s&&s[0]){$('aip').value=s[0].ai_provider;$('aim').value=s[0].ai_model||''}
-  renderSites();renderConns();renderHome();
+  renderSites();renderConns();renderHome();loadAgent();
 }
 const has=(name,site)=>secrets.find(x=>x.name===name&&(x.site_id||null)===(site||null));
 const when=s=>new Date(s.updated_at).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
@@ -230,7 +258,8 @@ function renderSites(){
    <div class="dom">${esc(s.domain)}<label style="margin-top:6px">Type<select data-f="type"><option value="textile"${s.site_type==='textile'?' selected':''}>Textile (author: Kamrul Islam)</option><option value="other"${s.site_type!=='textile'?' selected':''}>Other</option></select></label></div>
    <label>WordPress username<input data-f="wpu" name="shompa-wpu-${s.id}" value="${esc(s.wp_username)}" autocomplete="off" data-lpignore="true"></label>
    <label>App password ${p?`<span class="pill ok">Saved ${when(p)}</span>`:'<span class="pill warn">Not saved</span>'}<input data-f="wpp" type="text" name="shompa-wpp-${s.id}" autocomplete="off" data-lpignore="true" spellcheck="false" class="mask" placeholder="${p?'Type a new one to replace':'xxxx xxxx xxxx xxxx'}"></label>
-   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-save>Save</button><button data-del>Remove</button></div></div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
+   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-save>Save</button><button data-wpt>Test WordPress</button><button data-del>Remove</button></div>
+   <div style="grid-column:1/-1;font-size:13px" class="${s.connector_ok?'ok':s.connector_ok===false?'bad':'muted'}">${s.connector_msg?esc(s.connector_msg):'WordPress not tested yet. Install Shompa Connector 0.5.0, then press Test WordPress.'}</div></div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
 }
 const GLOBAL=[['bing_api_key','Bing Webmaster API key','Bing Webmaster Tools → Settings → API access'],['ai_key_claude','Claude API key','console.anthropic.com'],['ai_key_openai','OpenAI API key','platform.openai.com'],['ai_key_gemini','Gemini API key','aistudio.google.com'],['ubersuggest_api_key','Ubersuggest API key','Ubersuggest account → API'],['amazon_creators_id','Amazon Creators API credential ID','Associates Central → Tools → Creators API'],['amazon_creators_secret','Amazon Creators API secret','Associates Central → Tools → Creators API']];
 function renderConns(){
@@ -310,6 +339,106 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
     b.disabled=true;try{await vault({action:'delete',key:r.dataset.key});await api(`shompa_files?id=eq.${r.dataset.fid}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})});toast('File deleted');await loadFiles()}catch(err){toast(err.message,true);b.disabled=false}}
 });
 
+/* ---------- move Agent Saila swatches from Supabase storage to R2 (Step 2c) ---------- */
+const OLDQ='dev_notes?select=id,image_path&image_path=not.is.null&image_path=not.like.r2:*&order=id&limit=1000';
+async function checkSaila(){
+  try{const left=await api(OLDQ);const moved=await countRows('dev_notes?select=id&image_path=like.r2:*');
+    $('mstat').innerHTML=left.length?`<b>${left.length}</b> swatch photo${left.length>1?'s are':' is'} still in Supabase storage. ${moved} already in R2. <b>Update the Agent Saila app on your phone first</b>, so it can show photos from R2.`:`<span class="pill ok">Done</span> All Saila swatch photos are in R2 (${moved}). New ones go there automatically.`;
+    $('mgo').hidden=!left.length;
+  }catch(e){$('mstat').innerHTML=`<span class="pill bad">Not ready</span> ${esc(e.message)}`}
+}
+$('mgo').addEventListener('click',async e=>{const b=e.currentTarget;
+  if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again: Saila app is already updated';return}
+  b.disabled=true;let ok=0,fail=0,notFreed=0;
+  try{const list=await api(OLDQ);const t0=await token();
+    for(const [i,n] of list.entries()){
+      $('mprog').textContent=`Moving ${i+1} of ${list.length}…`;
+      try{const t=await token();
+        const g=await fetch(`${URLB}/storage/v1/object/authenticated/library-files/${n.image_path.split('/').map(encodeURIComponent).join('/')}`,{headers:{apikey:S.key,Authorization:`Bearer ${t}`}});
+        if(!g.ok)throw new Error(`download ${g.status}`);
+        const blob=await g.blob();const name=n.image_path.split('/').pop();
+        const {key,url}=await vault({action:'upload',folder:'dev_swatch',fileName:name});
+        const put=await fetch(url,{method:'PUT',headers:{'Content-Type':blob.type||'image/jpeg'},body:blob});
+        if(!put.ok)throw new Error(`R2 ${put.status}`);
+        await api(`dev_notes?id=eq.${n.id}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({image_path:'r2:'+key})});
+        const d=await fetch(`${URLB}/storage/v1/object/library-files/${n.image_path.split('/').map(encodeURIComponent).join('/')}`,{method:'DELETE',headers:{apikey:S.key,Authorization:`Bearer ${t}`}});
+        if(!d.ok)notFreed++;
+        ok++;
+      }catch(err){fail++;console.warn('swatch',n.id,err)}
+    }
+    $('mprog').textContent=`${ok} moved${fail?`, ${fail} failed (tap the button again to retry)`:''}${notFreed?`. ${notFreed} old copies could not be removed from Supabase storage`:''}.`;
+  }catch(err){toast(err.message,true)}finally{b.disabled=false;b.dataset.sure='';b.textContent='Move them to R2';checkSaila()}
+});
+
+
+/* ---------- Agent: findings, plan, changes, activity (Steps 4–9) ---------- */
+async function agent(body){
+  const t=await token();
+  const r=await fetch(`${URLB}/functions/v1/shompa-agent`,{method:'POST',headers:{apikey:S.key,Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||`Agent error ${r.status}`);return j;
+}
+let F=[],PL=[],CH=[],ACT=[],pollT=null;
+const dom=id=>(sites.find(s=>s.id===id)||{}).domain||'';
+const KIND={title_mismatch:'Title vs search',low_ctr:'Few clicks',old_content:'Old content',not_indexed:'Not on Bing',duplicate:'Duplicate',off_topic:'Off topic',thin:'Too short'};
+async function loadAgent(){
+  try{[F,PL,CH,ACT]=await Promise.all([
+    api('shompa_findings?select=*&order=created_at.desc&limit=400'),
+    api(`shompa_plan?select=*&order=planned_for.desc&limit=300`),
+    api('shompa_changes?select=*&order=made_at.desc&limit=300'),
+    api('shompa_activity?select=*&order=at.desc&limit=25')]);
+  }catch(e){return}
+  renderAgentHome();renderFindings2();renderPlan();renderChanges();
+  clearTimeout(pollT);if(F.some(f=>f.status==='working')||PL.some(p=>p.status==='writing'))pollT=setTimeout(loadAgent,6000);
+}
+function siteOpts(sel,all){const v=$(sel).value;$(sel).innerHTML=(all?'<option value="">All websites</option>':'')+sites.map(s=>`<option value="${s.id}">${esc(s.domain)}</option>`).join('');if(v)$(sel).value=v}
+function renderAgentHome(){
+  const td=new Date().toISOString().slice(0,10),pub=PL.filter(p=>p.planned_for===td&&p.status==='published').length;
+  const open=F.filter(f=>f.status==='open').length,wk=Date.now()-7*864e5,ch=CH.filter(c=>+new Date(c.made_at)>wk).length;
+  const sent=ACT.filter(a=>a.kind==='bing_submit'&&+new Date(a.at)>Date.now()-864e5).reduce((n,a)=>n+(+(a.message.match(/^\d+/)||[0])[0]),0);
+  $('ak').innerHTML=[['Articles published today',`${pub}/${sites.filter(s=>s.connector_ok).length||sites.length}`,'var(--org)'],['Findings waiting for you',open,'var(--red)'],['Changes this week',ch,'var(--grn)'],['Pages sent to Bing today',sent,'var(--teal)']].map(k=>`<div class="kpi" style="--c:${k[2]}"><span>${k[0]}</span><strong>${k[1]}</strong></div>`).join('');
+  $('alog').innerHTML=ACT.length?ACT.slice(0,10).map(a=>`<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px"><span class="muted" style="white-space:nowrap">${new Date(a.at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span><span class="${a.ok?'':'bad'}"><b>${esc(dom(a.site_id))}</b> ${esc(a.message)}</span></div>`).join(''):'<p class="sub">Nothing yet. The agent wakes every 15 minutes: it reads WordPress, runs the weekly audit, plans keywords, then writes one article per website per day.</p>';
+}
+const BTN={title_mismatch:[['accept','Accept new title'],['rewrite','Rewrite article']],low_ctr:[['accept','Accept new title'],['rewrite','Rewrite article']],old_content:[['draft','Move to draft'],['trash','Trash'],['rewrite','Rewrite']],off_topic:[['draft','Move to draft'],['trash','Trash']],duplicate:[['draft','Draft the weaker one'],['rewrite','Rewrite it']],thin:[['rewrite','Rewrite to 2000+ words']],not_indexed:[['accept','Send to Bing']]};
+function renderFindings2(){
+  siteOpts('fsite',true);
+  const kinds=[...new Set(F.map(f=>f.kind))],kv=$('fkind').value;$('fkind').innerHTML='<option value="">All problems</option>'+kinds.map(k=>`<option value="${k}">${KIND[k]||k}</option>`).join('');$('fkind').value=kinds.includes(kv)?kv:'';
+  const fs=$('fsite').value,fk=$('fkind').value,ok=f=>(!fs||f.site_id===fs)&&(!fk||f.kind===fk);
+  const open=F.filter(f=>ok(f)&&(f.status==='open'||f.status==='working'||f.status==='failed'));
+  $('flist2').innerHTML=open.map(f=>`<div class="box" data-f="${f.id}" style="--c:${f.status==='failed'?'var(--red)':'var(--vio)'}"><div style="font-size:13px"><b style="color:var(--vio)">${KIND[f.kind]||f.kind}</b> · ${esc(dom(f.site_id))}</div>
+    <h2 style="font-size:17px;margin:4px 0">${esc(f.headline)}</h2><p class="sub" style="font-size:14px">${esc(f.detail||'')}</p><p style="font-size:14px;margin:6px 0">Suggested: ${esc(f.suggestion||'')}</p>
+    ${f.url?`<p style="font-size:13px;margin:4px 0"><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.url)}</a></p>`:''}
+    ${f.status==='working'?'<p class="warn"><b>Working on it…</b></p>':`${f.status==='failed'?`<p class="bad" style="font-size:14px">Failed: ${esc(f.result)}</p>`:''}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${(BTN[f.kind]||[]).map((b,i)=>`<button class="${i?'':'pri'}" data-d="${b[0]}">${b[1]}</button>`).join('')}<button data-d="manual">Manual</button><button data-d="reject">Reject</button></div>`}</div>`).join('')||'<p class="sub" style="margin-top:14px">No open findings. The weekly audit adds new ones.</p>';
+  const hist=F.filter(f=>ok(f)&&['done','manual','rejected'].includes(f.status));
+  $('fhcount').textContent=`(${hist.length})`;
+  $('fhist').innerHTML=hist.slice(0,80).map(f=>`<div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:14px"><span class="pill ${f.status==='done'?'ok':f.status==='rejected'?'bad':'warn'}">${f.status}</span> <b>${esc(dom(f.site_id))}</b> ${esc(f.headline)}<div class="muted">${esc(f.result||'')}</div></div>`).join('');
+}
+function renderPlan(){
+  siteOpts('csite',false);
+  const st={planned:'warn',writing:'warn',published:'ok',failed:'bad',skipped:'muted'};
+  $('ctable').tBodies[0].innerHTML=PL.map(p=>`<tr><td style="white-space:nowrap">${fmtD(p.planned_for)}</td><td>${esc(dom(p.site_id))}</td><td><b>${esc(p.keyword)}</b>${p.why?`<div class="muted" style="font-size:12px">${esc(p.why)}</div>`:''}</td><td>${p.source==='bing_gap'?`Bing (${p.volume??'?'} impressions)`:'New topic'}</td><td><span class="pill ${st[p.status]||'muted'}">${p.status}</span>${p.url?`<div><a href="${esc(p.url)}" target="_blank" rel="noopener">Open article</a></div>`:''}${p.message?`<div class="muted" style="font-size:12px">${esc(p.message)}</div>`:''}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">No plan yet. The agent plans automatically after the first audit, or press "Plan 7 more days".</td></tr>';
+}
+const met=m=>m?`${m.clicks} clicks · ${m.impr} impr${m.pos?` · #${m.pos}`:''}`:'—';
+function renderChanges(){
+  const V={works:'ok',no_effect:'warn',worse:'bad',too_early:'muted'};
+  $('chtable').tBodies[0].innerHTML=CH.map(c=>`<tr><td style="white-space:nowrap">${new Date(c.made_at).toLocaleDateString([],{day:'numeric',month:'short'})}</td><td>${esc(dom(c.site_id))}</td><td>${esc(c.what)}</td><td>${met(c.before)}</td><td>${met(c.d7)}</td><td>${met(c.d14)}</td><td>${met(c.d28)}</td><td>${['draft','trash'].includes(c.kind)?'<span class="pill muted">removed</span>':`<span class="pill ${V[c.verdict]||'muted'}">${(c.verdict||'waiting').replace('_',' ')}</span>`}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">No changes yet.</td></tr>';
+  const by={};CH.filter(c=>c.verdict&&c.verdict!=='too_early').forEach(c=>{const k=dom(c.site_id)+'|'+c.kind;(by[k]=by[k]||{works:0,no_effect:0,worse:0})[c.verdict]++});
+  const NAME={title:'New titles',rewrite:'Rewrites',new_article:'New articles',indexnow:'Sending to Bing'};
+  $('lessons').innerHTML=Object.entries(by).map(([k,v])=>{const [d,kind]=k.split('|'),n=v.works+v.no_effect+v.worse;return `<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:14px"><b>${esc(d)}</b> · ${NAME[kind]||kind}: <span class="ok">${v.works} of ${n} worked</span>${v.worse?`, <span class="bad">${v.worse} made it worse</span>`:''}</div>`}).join('')||'<p class="sub">Results appear 7–28 days after the first changes.</p>';
+}
+['fsite','fkind'].forEach(id=>$(id).addEventListener('change',renderFindings2));
+$('frun').addEventListener('click',async e=>{const b=e.currentTarget,s=$('fsite').value;if(!s)return toast('Choose one website first.',true);b.disabled=true;try{const j=await agent({action:'audit',site:s});toast(j.message);setTimeout(loadAgent,20000);setTimeout(loadAgent,60000)}catch(err){toast(err.message,true)}finally{b.disabled=false}});
+$('cplan').addEventListener('click',async e=>{const b=e.currentTarget;b.disabled=true;$('cmsg').textContent='Planning…';try{const j=await agent({action:'plan',site:$('csite').value});$('cmsg').textContent=j.message;loadAgent()}catch(err){$('cmsg').textContent='';toast(err.message,true)}finally{b.disabled=false}});
+$('cwrite').addEventListener('click',async e=>{const b=e.currentTarget;b.disabled=true;try{const j=await agent({action:'write_now',site:$('csite').value});$('cmsg').textContent=j.message;setTimeout(loadAgent,3000)}catch(err){toast(err.message,true)}finally{b.disabled=false}});
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.d){const card=b.closest('[data-f]');const d=b.dataset.d;
+    if(['trash','reject'].includes(d)&&b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent=d==='trash'?'Tap again to trash':'Tap again to reject';return}
+    card.querySelectorAll('button').forEach(x=>x.disabled=true);
+    try{await agent({action:'decide',finding:+card.dataset.f,decision:d});const f=F.find(x=>x.id===+card.dataset.f);if(f)f.status=['manual','reject'].includes(d)?(d==='reject'?'rejected':'manual'):'working';renderFindings2();setTimeout(loadAgent,2500)}
+    catch(err){toast(err.message,true);card.querySelectorAll('button').forEach(x=>x.disabled=false)}}
+  if(b.hasAttribute('data-wpt')){const row=b.closest('.row');b.disabled=true;b.textContent='Testing…';
+    try{const j=await agent({action:'wp_test',site:row.dataset.id});toast(j.message)}catch(err){toast(err.message,true)}finally{await load();}}
+});
+
 /* ---------- sign-in & routing ---------- */
 if(S.key)$('keyRow').style.display='none';
 $('lf').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;
@@ -317,9 +446,9 @@ $('lf').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.
     await auth({email:$('lemail').value.trim(),password:$('lpass').value},'password');store.set('sh_key',S.key);$('lpass').value='';start()}
   catch(err){if(!store.get('sh_key'))S.key=null;toast(err.message,true)}finally{b.disabled=false}});
 $('out').addEventListener('click',e=>{e.preventDefault();S.access=null;S.refresh=null;store.set('sh_refresh',null);show('login')});
-const views=['home','sites','connections','files'];
+const views=['home','agent','content','changes','sites','connections','files'];
 function show(v){$('nav').hidden=v==='login';document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v))}
-function route(){if(!S.access&&!S.refresh)return show('login');const v=location.hash.slice(1),ok=views.includes(v)?v:'home';show(ok);if(ok==='files')loadFiles().catch(e=>toast(e.message,true))}
+function route(){if(!S.access&&!S.refresh)return show('login');const v=location.hash.slice(1),ok=views.includes(v)?v:'home';show(ok);if(ok==='files'){loadFiles().catch(e=>toast(e.message,true));checkSaila()}}
 addEventListener('hashchange',route);
 async function start(){try{await token();route();await load()}catch(e){S.refresh=null;store.set('sh_refresh',null);show('login');if(e.message!=='signed-out')toast(e.message,true)}}
 if(S.refresh&&S.key)start();else show('login');
