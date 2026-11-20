@@ -51,12 +51,13 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 .view{display:none}.view.on{display:block}
 #login{max-width:440px}
 @media(max-width:700px){.row,.secret{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){header b{font-size:18px}header .band{padding-block:8px 6px}nav a{padding:6px 10px;min-height:40px;font-size:14px}.band{padding:14px 10px}h1{font-size:26px}.kpi strong{font-size:24px}.box{padding:12px;border-radius:12px}}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 </head>
 <body>
 <header><div class="band"><b>Agent Shompa</b>
-  <nav id="nav" hidden><a href="#home">Today</a><a href="#agent">Agent</a><a href="#content">Content</a><a href="#changes">Changes</a><a href="#sites">Websites</a><a href="#connections">Connections</a><a href="#files">Files</a><a href="#" id="out">Sign out</a></nav>
+  <nav id="nav" hidden><a href="#home">Today</a><a href="#agent">Agent</a><a href="#content">Content</a><a href="#changes">Changes</a><a href="#amazon">Amazon</a><a href="#sites">Websites</a><a href="#connections">Connections</a><a href="#files">Files</a><a href="#" id="out">Sign out</a></nav>
 </div></header>
 <main>
 <section class="band view" id="v-login">
@@ -86,6 +87,14 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <div class="legend" id="blegend"></div>
   </div>
   <div class="box"><h2>Websites on Bing <small class="muted" style="font-size:13px;font-weight:400">last 28 days vs the 28 before</small></h2><div class="scroll"><table class="stack" id="btable"><thead><tr><th>Website</th><th class="n">Clicks</th><th class="n">Change</th><th class="n">Impressions</th><th class="n">Avg position</th><th class="n">Keywords</th><th class="n">Top 10</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="box" style="--c:#2a6fdb">
+    <h2 style="display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center">Google <small class="muted" id="grange" style="font-size:14px;font-weight:400"></small>
+      <button id="gsync" style="margin-left:auto;min-height:38px;padding:6px 14px">Refresh from Google</button></h2>
+    <p class="sub" id="gstat" style="font-size:14px"></p>
+    <div class="kpis" id="gk" style="margin-top:12px"></div>
+    <div class="scroll" style="margin-top:12px"><table class="stack" id="gtable"><thead><tr><th>Website</th><th class="n">Google clicks</th><th class="n">Change</th><th class="n">Impressions</th><th class="n">Avg position</th><th class="n">Visitors</th><th class="n">Page views</th><th class="n">AdSense</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="box" style="--c:var(--org)"><h2>Amazon <small class="muted" id="zrange" style="font-size:14px;font-weight:400"></small></h2><div class="kpis" id="zk"></div><p class="sub" id="zstat" style="font-size:14px;margin-top:8px"></p></div>
   <div class="kpis" id="hk" style="margin-top:16px"></div>
   <div class="box" style="--c:var(--teal)"><h2>Link with Agent Saila</h2><p class="sub" id="saila">Checking…</p></div>
 </section>
@@ -112,9 +121,30 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
   <div class="box scroll"><table class="stack" id="chtable"><thead><tr><th>Date</th><th>Website</th><th>Change</th><th>Before</th><th>Day 7</th><th>Day 14</th><th>Day 28</th><th>Result</th></tr></thead><tbody></tbody></table></div>
 </section>
 
+<section class="band view" id="v-amazon">
+  <h1>Amazon</h1>
+  <p class="sub">Amazon has no live earnings feed, so upload the report files. In Associates Central go to Reports, choose the dates, then Download reports. Pick Tracking-Id, Linked-Product (and Bounty-Tracking-Id if you have bounties). You can upload the .zip as it is.</p>
+  <div class="box"><h2>Upload reports</h2>
+    <form class="form" id="zf">
+      <label>Report files (.zip or .csv)<input type="file" id="zfile" multiple accept=".zip,.csv,.tsv,.txt"></label>
+      <label>From<input type="date" id="zfrom" required></label>
+      <label>To<input type="date" id="zto" required></label>
+      <button class="pri">Upload</button>
+    </form><p class="sub" id="zprog" style="margin-top:8px"></p></div>
+  <div class="box" style="--c:var(--org)"><h2>Earnings per website <small class="muted" id="zper" style="font-size:13px;font-weight:400"></small></h2>
+    <div class="form" style="margin-bottom:8px"><label>Period<select id="zperiod"></select></label></div>
+    <div class="scroll"><table class="stack" id="ztable"><thead><tr><th>Website</th><th class="n">Clicks</th><th class="n">Items ordered</th><th class="n">Shipped</th><th class="n">Revenue</th><th class="n">Earnings</th><th class="n">Bounties</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="box"><h2>Tracking IDs</h2><p class="sub" style="font-size:14px">Each tracking ID belongs to one website. Names like practicaltextile-20 are matched automatically; choose the rest.</p><div id="ztags"></div></div>
+  <div class="box" style="--c:var(--teal)"><h2>Creator Connections</h2>
+    <p class="sub" style="font-size:14px">The products your websites earn from or send clicks to, most valuable first. Search each one in Creator Connections, accept its campaign if there is one, then mark it here. Shompa never touches your Amazon account.</p>
+    <p style="margin:8px 0"><a href="https://affiliate-program.amazon.com/p/connect/requests" target="_blank" rel="noopener">Open Creator Connections ↗</a></p>
+    <div class="scroll"><table class="stack" id="cctable"><thead><tr><th>Product</th><th class="n">Clicks</th><th class="n">Earnings</th><th>Campaign</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="box" style="--c:var(--line)"><h2>Uploaded files</h2><div id="zimports"></div></div>
+</section>
+
 <section class="band view" id="v-sites">
   <h1>Websites</h1>
-  <p class="sub">The WordPress app password is saved encrypted. No screen ever shows it again; you can only replace or delete it.</p>
+  <p class="sub">The WordPress app password is saved encrypted. No screen ever shows it again; you can only replace or delete it. Each website can post to its own Facebook Page and Pinterest board (2 posts a day each: the newest article, and a page Google/Bing hasn't indexed yet or an old article with a fresh angle).</p>
   <div class="box"><h2>Add a website</h2>
     <form class="form" id="af"><label>Website address<input id="adom" placeholder="example.com" autocomplete="off" required></label>
       <label>Type<select id="atype"><option value="textile">Textile (author: Kamrul Islam)</option><option value="other">Other</option></select></label>
@@ -128,6 +158,22 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
   <div class="box"><h2>AI for writing and audits</h2>
     <div class="form"><label>AI provider<select id="aip"><option value="claude">Claude</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></label>
     <label>Model (optional)<input id="aim" name="shompa-ai-model" autocomplete="off" data-lpignore="true" placeholder="Leave empty for the best model"></label><button id="aisave">Save choice</button></div></div>
+  <div class="box" style="--c:#2a6fdb"><h2>Google: Search Console, Analytics, AdSense</h2>
+    <p class="sub" style="font-size:14px">Use the same Google Cloud login (OAuth client) as Shompa Hub. In Google Cloud → APIs &amp; Services → Credentials → your OAuth client, add this address under <b>Authorised redirect URIs</b>, then save:</p>
+    <p style="margin:8px 0"><code id="guri" style="word-break:break-all;background:var(--bg);padding:4px 8px;border-radius:6px"></code> <button data-copy="guri" style="min-height:34px;padding:4px 10px;font-size:13px">Copy</button></p>
+    <div id="glogin"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center"><button class="pri" id="gconnect">Connect Google</button><button id="gdis" hidden>Disconnect</button><span id="gconn" style="font-size:14px"></span></div>
+    <div id="gprops" style="margin-top:10px;font-size:14px"></div></div>
+  <div class="box" style="--c:#1877f2"><h2>Facebook Pages</h2>
+    <p class="sub" style="font-size:14px">Needs a Meta app (developers.facebook.com → My Apps → Create app → "Other" → "Business"). Add the product <b>Facebook Login for Business</b> and put this address in <b>Valid OAuth Redirect URIs</b>:</p>
+    <p style="margin:8px 0"><code id="furi" style="word-break:break-all;background:var(--bg);padding:4px 8px;border-radius:6px"></code> <button data-copy="furi" style="min-height:34px;padding:4px 10px;font-size:13px">Copy</button></p>
+    <div id="flogin"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center"><button class="pri" data-sconnect="facebook">Connect Facebook</button><span id="fconn" style="font-size:14px"></span></div></div>
+  <div class="box" style="--c:#e60023"><h2>Pinterest</h2>
+    <p class="sub" style="font-size:14px">Needs a Pinterest app (developers.pinterest.com → My apps → Connect app). Put this address in the app's <b>Redirect URIs</b>. Pins only go live after Pinterest gives the app Standard access.</p>
+    <p style="margin:8px 0"><code id="puri" style="word-break:break-all;background:var(--bg);padding:4px 8px;border-radius:6px"></code> <button data-copy="puri" style="min-height:34px;padding:4px 10px;font-size:13px">Copy</button></p>
+    <div id="plogin"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center"><button class="pri" data-sconnect="pinterest">Connect Pinterest</button><button id="prefresh">Reload boards</button><span id="pconn" style="font-size:14px"></span></div></div>
   <div class="box" style="--c:var(--teal)"><h2>API keys</h2><div id="glist"></div></div>
 </section>
 <section class="band view" id="v-files">
@@ -181,7 +227,8 @@ let sites=[],secrets=[];
 async function load(){
   [sites,secrets]=await Promise.all([api('shompa_sites?select=*&deleted_at=is.null&order=created_at'),api('shompa_secret_index?select=name,site_id,updated_at')]);
   const s=await api('shompa_settings?select=*');if(s&&s[0]){$('aip').value=s[0].ai_provider;$('aim').value=s[0].ai_model||''}
-  renderSites();renderConns();renderHome();loadAgent();
+  await loadSocial();
+  renderSites();renderConns();renderConnect();renderHome();loadGoogle();loadAmazon();loadAgent();
 }
 const has=(name,site)=>secrets.find(x=>x.name===name&&(x.site_id||null)===(site||null));
 const when=s=>new Date(s.updated_at).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
@@ -259,7 +306,8 @@ function renderSites(){
    <label>WordPress username<input data-f="wpu" name="shompa-wpu-${s.id}" value="${esc(s.wp_username)}" autocomplete="off" data-lpignore="true"></label>
    <label>App password ${p?`<span class="pill ok">Saved ${when(p)}</span>`:'<span class="pill warn">Not saved</span>'}<input data-f="wpp" type="text" name="shompa-wpp-${s.id}" autocomplete="off" data-lpignore="true" spellcheck="false" class="mask" placeholder="${p?'Type a new one to replace':'xxxx xxxx xxxx xxxx'}"></label>
    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-save>Save</button><button data-wpt>Test WordPress</button><button data-del>Remove</button></div>
-   <div style="grid-column:1/-1;font-size:13px" class="${s.connector_ok?'ok':s.connector_ok===false?'bad':'muted'}">${s.connector_msg?esc(s.connector_msg):'Not tested yet. Press Test WordPress (the WordPress user must be an Editor or Administrator).'}</div></div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
+   <div style="grid-column:1/-1;font-size:13px" class="${s.connector_ok?'ok':s.connector_ok===false?'bad':'muted'}">${s.connector_msg?esc(s.connector_msg):'Not tested yet. Press Test WordPress (the WordPress user must be an Editor or Administrator).'}</div>
+   ${socialRow(s)}</div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
 }
 const GLOBAL=[['bing_api_key','Bing Webmaster API key','Bing Webmaster Tools → Settings → API access'],['ai_key_claude','Claude API key','console.anthropic.com'],['ai_key_openai','OpenAI API key','platform.openai.com'],['ai_key_gemini','Gemini API key','aistudio.google.com'],['ubersuggest_api_key','Ubersuggest API key','Ubersuggest account → API'],['amazon_creators_id','Amazon Creators API credential ID','Associates Central → Tools → Creators API'],['amazon_creators_secret','Amazon Creators API secret','Associates Central → Tools → Creators API']];
 function renderConns(){
@@ -441,6 +489,156 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
     try{const j=await agent({action:'wp_test',site:row.dataset.id});toast(j.message)}catch(err){toast(err.message,true)}finally{await load();}}
 });
 
+/* ---------- Connect buttons: Google, Facebook, Pinterest (Step 10–11) ---------- */
+const CB=p=>`${URLB}/functions/v1/shompa-agent/oauth/${p}`;
+let SA=[],SC=[],SP=[];
+const secretRow=(n,l,w)=>{const p=has(n);return `<div class="secret" data-n="${n}"><div><b>${l}</b><small>${w}</small><br>${p?`<span class="pill ok">✓ Saved ${when(p)}</span>`:'<span class="pill warn">Not saved</span>'}</div>
+   <label>${p?'Replace':'Paste'}<input type="text" name="shompa-key-${n}" autocomplete="off" data-lpignore="true" spellcheck="false" class="mask"></label>
+   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-gs>Save</button>${p?'<button data-gd>Delete</button>':''}</div></div>`};
+async function loadSocial(){try{[SA,SC,SP]=await Promise.all([api('shompa_social_links?select=*'),api('shompa_social_choices?select=*&order=name'),api('shompa_social_posts?select=site_id,network,kind,ok,message,url,posted_at&order=posted_at.desc&limit=200')])}catch(e){SA=[];SC=[];SP=[]}}
+function renderConnect(){
+  $('guri').textContent=CB('google');$('furi').textContent=CB('facebook');$('puri').textContent=CB('pinterest');
+  $('glogin').innerHTML=secretRow('google_client_id','Google Client ID','Google Cloud → Credentials → OAuth 2.0 Client IDs (ends with .apps.googleusercontent.com)')+secretRow('google_client_secret','Google Client secret','Same OAuth client → Client secret');
+  $('flogin').innerHTML=secretRow('facebook_app_id','Facebook App ID','developers.facebook.com → your app → App settings → Basic')+secretRow('facebook_app_secret','Facebook App secret','Same page → App secret (Show)');
+  $('plogin').innerHTML=secretRow('pinterest_app_id','Pinterest App ID','developers.pinterest.com → My apps → your app')+secretRow('pinterest_app_secret','Pinterest App secret key','Same page → App secret key');
+  const g=has('google_refresh_token');$('gconn').innerHTML=g?`<span class="pill ok">Connected ${when(g)}</span>`:'<span class="pill warn">Not connected</span>';$('gdis').hidden=!g;$('gconnect').textContent=g?'Connect again':'Connect Google';
+  const fp=SC.filter(c=>c.network==='facebook').length,pb=SC.filter(c=>c.network==='pinterest').length;
+  $('fconn').innerHTML=fp?`<span class="pill ok">${fp} Pages</span> Choose a Page for each website on the Websites tab.`:'<span class="pill warn">Not connected</span>';
+  $('pconn').innerHTML=pb?`<span class="pill ok">${pb} boards</span> Choose a board for each website on the Websites tab.`:'<span class="pill warn">Not connected</span>';
+  $('gprops').innerHTML=g?sites.map(s=>`<div style="padding:4px 0;border-bottom:1px solid var(--line)"><b>${esc(s.domain)}</b> · Search Console: ${s.gsc_property?`<span class="ok">${esc(s.gsc_property)}</span>`:'<span class="warn">not found</span>'} · Analytics: ${s.ga_property?`<span class="ok">${esc(s.ga_property)}</span>`:'<span class="warn">not found</span>'}</div>`).join(''):'';
+}
+function socialRow(s){
+  const sel=(net,label)=>{const ch=SC.filter(c=>c.network===net),cur=SA.find(a=>a.site_id===s.id&&a.network===net);
+    if(!ch.length&&!cur)return `<label>${label}<select disabled><option>Connect ${label} first (Connections tab)</option></select></label>`;
+    return `<label>${label}<select data-soc="${net}"><option value="">Don't post</option>${ch.map(c=>`<option value="${esc(c.account_id)}"${cur&&cur.account_id===c.account_id?' selected':''}>${esc(c.name||c.account_id)}</option>`).join('')}</select></label>`};
+  const last=SP.find(p=>p.site_id===s.id);
+  return `<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;align-items:end">${sel('facebook','Facebook Page')}${sel('pinterest','Pinterest board')}
+   ${SA.some(a=>a.site_id===s.id)?'<div><button data-postnow>Post newest article now</button></div>':''}</div>
+   ${last?`<div style="grid-column:1/-1;font-size:13px" class="${last.ok?'ok':'bad'}">Last social post ${new Date(last.posted_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})} · ${last.network} · ${esc(last.ok?last.kind:last.message)}</div>`:''}`;
+}
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.copy){try{await navigator.clipboard.writeText($(b.dataset.copy).textContent);toast('Copied')}catch(err){toast('Select the address and copy it by hand.',true)}}
+  if(b.id==='gconnect'||b.dataset.sconnect){b.disabled=true;try{const j=await agent(b.id==='gconnect'?{action:'google_connect'}:{action:'social_connect',network:b.dataset.sconnect});location.href=j.url}catch(err){toast(err.message,true);b.disabled=false}}
+  if(b.id==='gdis'){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to disconnect';return}run(b,()=>agent({action:'google_disconnect'}),'Google disconnected')}
+  if(b.id==='prefresh'){b.disabled=true;try{toast((await agent({action:'social_refresh'})).message);await load()}catch(err){toast(err.message,true)}finally{b.disabled=false}}
+  if(b.id==='gsync'){b.disabled=true;b.textContent='Getting Google data…';try{toast((await agent({action:'google_sync'})).message);await load()}catch(err){toast(err.message,true)}finally{b.disabled=false;b.textContent='Refresh from Google'}}
+  if(b.hasAttribute('data-postnow')){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to post publicly';return}b.disabled=true;try{toast((await agent({action:'social_now',site:b.closest('.row').dataset.id})).message)}catch(err){toast(err.message,true)}finally{b.disabled=false;b.dataset.sure='';b.textContent='Post newest article now'}}
+});
+document.addEventListener('change',async e=>{const s=e.target.closest('select[data-soc]');if(!s)return;s.disabled=true;
+  try{toast((await agent({action:'social_assign',site:s.closest('.row').dataset.id,network:s.dataset.soc,account_id:s.value||null})).message);await loadSocial()}catch(err){toast(err.message,true)}finally{s.disabled=false}});
+
+/* ---------- Google on Today (Search Console, Analytics, AdSense) ---------- */
+async function loadGoogle(){
+  const g=has('google_refresh_token');
+  if(!g){$('gstat').innerHTML='<span class="pill warn">Not connected</span> Connect Google on the Connections tab to see Search Console, Analytics and AdSense here.';$('gk').innerHTML='';$('gtable').tBodies[0].innerHTML='';$('grange').textContent='';return}
+  let rows=[];try{rows=await api(`shompa_google_daily?select=site_id,source,day,clicks,impressions,position,users,views,earnings,currency&day=gte.${new Date(Date.now()-100*864e5).toISOString().slice(0,10)}&order=day&limit=10000`)}catch(e){$('gstat').innerHTML=`<span class="pill bad">Not ready</span> ${esc(e.message)}`;return}
+  if(!rows.length){$('gstat').innerHTML='<span class="pill ok">Connected</span> Getting your Google data for the first time… (press Refresh from Google if nothing shows in a few minutes)';return}
+  const win=src=>{const d=rows.filter(r=>r.source===src).map(r=>r.day).sort(),L=d[d.length-1];if(!L)return null;const t=Date.parse(L+'T00:00:00Z'),day=n=>new Date(t-n*864e5).toISOString().slice(0,10);return {L,cur:[day(27),L],prev:[day(55),day(28)]}};
+  const agg=(src,range,site)=>{const x={clicks:0,impressions:0,pw:0,users:0,views:0,earnings:0};if(!range)return x;rows.forEach(r=>{if(r.source===src&&r.day>=range[0]&&r.day<=range[1]&&(!site||r.site_id===site)){x.clicks+=r.clicks;x.impressions+=r.impressions;x.pw+=(r.position||0)*r.impressions;x.users+=r.users;x.views+=r.views;x.earnings+=+r.earnings}});return x};
+  const wg=win('gsc'),wa=win('ga'),wd=win('adsense'),cur=(rows.find(r=>r.source==='adsense')||{}).currency||'USD';
+  const money=n=>n.toLocaleString([],{style:'currency',currency:cur,maximumFractionDigits:2});
+  const G1=agg('gsc',wg&&wg.cur),G0=agg('gsc',wg&&wg.prev),A1=agg('ga',wa&&wa.cur),A0=agg('ga',wa&&wa.prev),D1=agg('adsense',wd&&wd.cur),D0=agg('adsense',wd&&wd.prev);
+  $('grange').textContent=wg?`· ${fmtD(wg.cur[0])} to ${fmtD(wg.L)}`:'';
+  $('gstat').innerHTML='<span class="pill ok">Connected</span> Last 28 days vs the 28 before. Search Console data is 2–3 days behind.';
+  const kp=(l,v,ch,col)=>`<div class="kpi" style="--c:${col}"><span>${l}</span><strong>${v}</strong>${ch?`<div style="font-size:13px">${ch}</div>`:''}</div>`;
+  $('gk').innerHTML=kp('Google clicks',nf(G1.clicks),chg(pct(G1.clicks,G0.clicks)),'#2a6fdb')+kp('Google impressions',nf(G1.impressions),chg(pct(G1.impressions,G0.impressions)),'var(--vio)')+kp('Average position',G1.impressions?(G1.pw/G1.impressions).toFixed(1):'—','','var(--grn)')
+    +kp('Visitors (Analytics)',wa?nf(A1.users):'—',wa?chg(pct(A1.users,A0.users)):'','var(--teal)')+kp('Page views',wa?nf(A1.views):'—',wa?chg(pct(A1.views,A0.views)):'','#5a6b7d')+kp('AdSense earnings',wd?money(D1.earnings):'—',wd?chg(pct(D1.earnings,D0.earnings)):'','var(--org)');
+  $('gtable').tBodies[0].innerHTML=sites.map(s=>{const g1=agg('gsc',wg&&wg.cur,s.id),g0=agg('gsc',wg&&wg.prev,s.id),a1=agg('ga',wa&&wa.cur,s.id),d1=agg('adsense',wd&&wd.cur,s.id);
+    return `<tr><td style="font-weight:700">${esc(s.domain)}${!s.gsc_property?'<div class="warn" style="font-size:12px;font-weight:400">Not in Search Console</div>':''}</td><td class="n">${s.gsc_property?nf(g1.clicks):'—'}</td><td class="n">${s.gsc_property?chg(pct(g1.clicks,g0.clicks))||'—':'—'}</td><td class="n">${s.gsc_property?nf(g1.impressions):'—'}</td><td class="n">${g1.impressions?(g1.pw/g1.impressions).toFixed(1):'—'}</td><td class="n">${s.ga_property?nf(a1.users):'—'}</td><td class="n">${s.ga_property?nf(a1.views):'—'}</td><td class="n">${d1.earnings||d1.views?money(d1.earnings):'—'}</td></tr>`}).join('');
+}
+
+/* ---------- Amazon reports (Step 11) ---------- */
+let ZI=[],ZR=[],ZT=[],ZC=[];
+const znorm=h=>String(h).toLowerCase().replace(/\(.*?\)/g,'').replace(/[^a-z0-9]/g,'');
+function znum(v){v=String(v??'').trim();if(!v||v==='-')return 0;const neg=v[0]==='('||v[0]==='-';v=v.replace(/[^0-9.,]/g,'');if(!v)return 0;const d=v.lastIndexOf('.'),c=v.lastIndexOf(',');let dec='.';if(d>=0&&c>=0)dec=d>c?'.':',';else if(c>=0)dec=/,\d{1,2}$/.test(v)?',':'';v=dec===','?v.replace(/\./g,'').replace(',','.'):v.replace(/,/g,'');const n=parseFloat(v)||0;return neg?-n:n}
+function zcsv(line,delim){const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(q){if(ch==='"'){if(line[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}else if(ch==='"')q=true;else if(ch===delim){out.push(cur);cur=''}else cur+=ch}out.push(cur);return out}
+function zcur(h){const m=[[/\(A\$\)|AUD/,'AUD'],[/\(C\$\)|CAD/,'CAD'],[/\(£\)|GBP/,'GBP'],[/\(€\)|EUR/,'EUR'],[/\(₹\)|INR/,'INR'],[/\(¥\)|JPY/,'JPY'],[/\(\$\)|USD/,'USD']];for(const [re,c] of m)if(re.test(h))return c;return ''}
+function zparse(text){
+  const lines=text.replace(/^﻿/,'').trim().split(/\r\n|\n|\r/);let hi=lines.slice(0,5).findIndex(l=>/Tracking Id|ASIN|Category|Ad Fees/i.test(l)&&(l.match(/[,\t]/g)||[]).length>=2);
+  if(hi<0)throw new Error('not an Amazon Associates report');
+  const delim=(lines[hi].match(/\t/g)||[]).length>(lines[hi].match(/,/g)||[]).length?'\t':',';const cols={};zcsv(lines[hi],delim).forEach((h,i)=>{const k=znorm(h);if(!(k in cols))cols[k]=i});const has=k=>k in cols;
+  let kind;if(has('rank')&&has('asin'))kind='top';else if(has('asin')&&has('totalearnings'))kind='product';else if(has('trackingid')&&has('totalearnings'))kind='tracking';else if(has('category')&&has('totalearnings'))kind='category';else if(has('trackingid')&&has('adfees')&&!has('name'))kind='bounty';
+  else if(has('adfees')&&has('name'))return {kind:'skip',reason:'Bounty-Event reports are not needed (Bounty-Tracking-Id covers bounties).'};
+  else if(has('dateshipped')||(has('adfees')&&has('asin')))throw new Error('this is the older daily Earnings report; please download the Tracking-Id and Linked-Product reports instead');
+  else throw new Error('unknown Amazon report type');
+  const currency=zcur(lines[hi])||'USD',rows=[];
+  for(let i=hi+1;i<lines.length;i++){if(!lines[i].trim())continue;const r=zcsv(lines[i],delim),g=k=>k in cols?String(r[cols[k]]??'').trim():'',n=k=>znum(g(k)),cl=x=>x==='-'?'':x;
+    const row={row_key:'',asin:null,title:null,category:null,rank_no:null,extra:null,clicks:Math.round(n('clicks')),items_ordered:Math.round(n('itemsordered')),items_shipped:Math.round(n('itemsshipped')),items_returned:Math.round(n('itemsreturned')),ordered_revenue:n('orderedrevenue'),shipped_revenue:n('itemsshippedrevenue'),returned_revenue:n('itemsreturnedrevenue'),earnings:n('totalearnings'),bonus:n('bonus'),commission_rate:n('commissionrate')};
+    if(kind==='tracking')row.row_key=g('trackingid');
+    else if(kind==='product'){row.asin=g('asin').toUpperCase();row.title=cl(g('producttitle')).slice(0,255);row.category=cl(g('category')).slice(0,100);row.row_key=row.asin+'|'+row.category}
+    else if(kind==='category'){row.category=g('category').slice(0,100);row.row_key=row.category}
+    else if(kind==='top'){row.asin=g('asin').toUpperCase();row.title=g('producttitle').slice(0,255);row.category=g('category').slice(0,100);row.rank_no=Math.round(n('rank'));row.extra=g('purchasetype').slice(0,60);row.row_key=row.asin}
+    else if(kind==='bounty'){row.row_key=g('trackingid');row.items_ordered=Math.round(n('quantity'));row.earnings=n('adfees')}
+    if(!row.row_key||row.row_key==='|')continue;row.row_key=row.row_key.slice(0,190);rows.push(row)}
+  return {kind,currency,rows};
+}
+async function unzip(buf){const v=new DataView(buf),u8=new Uint8Array(buf);let e=-1;for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65557);i--)if(v.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw new Error('not a .zip file');const n=v.getUint16(e+10,true);let p=v.getUint32(e+16,true);const out=[];
+  for(let k=0;k<n;k++){const method=v.getUint16(p+10,true),size=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),xl=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),off=v.getUint32(p+42,true),name=new TextDecoder().decode(u8.subarray(p+46,p+46+nl));p+=46+nl+xl+cl;
+    if(!/\.(csv|tsv|txt)$/i.test(name)||name.includes('__MACOSX'))continue;const st=off+30+v.getUint16(off+26,true)+v.getUint16(off+28,true),data=u8.subarray(st,st+size);
+    let bytes;if(method===0)bytes=data;else if(method===8)bytes=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());else continue;
+    out.push({name:name.split('/').pop(),text:new TextDecoder().decode(bytes)})}
+  return out}
+const zstem=t=>String(t).toLowerCase().replace(/-\d+$/,'').replace(/[^a-z0-9]/g,'');
+const sstem=d=>String(d).toLowerCase().replace(/^www\./,'').replace(/\.(com|net|org|co|io|info|shop|store|blog)(\.[a-z]{2})?$|\.[a-z]{2,6}$/,'').replace(/[^a-z0-9]/g,'');
+function zguess(tag){const t=zstem(tag);if(t.length<4)return null;let best=null,score=0;for(const s of sites){const st=sstem(s.domain);if(st===t)return s.id;const a=t.length>st.length?t:st,b=a===t?st:t;const sc=a.includes(b)?b.length/a.length:0;if(sc>score){score=sc;best=s.id}}return score>=.85?best:null}
+async function loadAmazon(){
+  try{[ZI,ZT,ZC]=await Promise.all([api('shompa_amz_imports?select=*&order=last_date.desc,id.desc'),api('shompa_amz_tags?select=*'),api('shompa_cc?select=*')]);
+    ZR=ZI.length?await api(`shompa_amz_rows?select=import_id,kind,row_key,asin,title,clicks,items_ordered,items_shipped,shipped_revenue,ordered_revenue,earnings&import_id=in.(${ZI.map(i=>i.id).join(',')})&limit=20000`):[];
+  }catch(e){$('zstat').innerHTML=`<span class="pill bad">Not ready</span> ${esc(e.message)}`;return}
+  // name-match new tracking IDs to websites
+  const tags=[...new Set(ZR.filter(r=>r.kind==='tracking'||r.kind==='bounty').map(r=>r.row_key))],add=[];
+  for(const t of tags)if(!ZT.some(x=>x.tag===t)){const g=zguess(t);if(g)add.push({tag:t,site_id:g})}
+  if(add.length){await api('shompa_amz_tags?on_conflict=owner,tag',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(add)}).catch(()=>{});ZT=ZT.concat(add)}
+  renderAmazon();
+}
+const periods=()=>[...new Map(ZI.map(i=>[`${i.first_date}|${i.last_date}|${i.currency}`,i])).values()];
+function zsum(key){const [f,l,c]=key.split('|'),ids=new Set(ZI.filter(i=>i.first_date===f&&i.last_date===l&&i.currency===c).map(i=>i.id)),by={};
+  const site=t=>(ZT.find(x=>x.tag===t)||{}).site_id||'none';
+  ZR.filter(r=>ids.has(r.import_id)&&(r.kind==='tracking'||r.kind==='bounty')).forEach(r=>{const s=site(r.row_key),x=by[s]=by[s]||{clicks:0,ordered:0,shipped:0,revenue:0,earnings:0,bounty:0};
+    if(r.kind==='tracking'){x.clicks+=r.clicks;x.ordered+=r.items_ordered;x.shipped+=r.items_shipped;x.revenue+=+r.shipped_revenue;x.earnings+=+r.earnings}else x.bounty+=+r.earnings});
+  return {by,cur:c,f,l}}
+function renderAmazon(){
+  const P=periods(),pv=$('zperiod').value;$('zperiod').innerHTML=P.map(i=>`<option value="${i.first_date}|${i.last_date}|${i.currency}">${fmtD(i.first_date)} – ${fmtD(i.last_date)} ${i.last_date.slice(0,4)} (${i.currency})</option>`).join('');if(pv&&P.some(i=>`${i.first_date}|${i.last_date}|${i.currency}`===pv))$('zperiod').value=pv;
+  const money=(n,c)=>(+n).toLocaleString([],{style:'currency',currency:c||'USD'});
+  if(!P.length){$('ztable').tBodies[0].innerHTML='<tr><td colspan="7" class="muted">No reports uploaded yet.</td></tr>';$('zk').innerHTML='';$('zstat').innerHTML='Upload your Associates reports on the Amazon tab to see earnings here.';$('zrange').textContent='';$('ztags').innerHTML='';$('cctable').tBodies[0].innerHTML='';$('zimports').innerHTML='';return}
+  const z=zsum($('zperiod').value),tot={clicks:0,ordered:0,shipped:0,revenue:0,earnings:0,bounty:0};Object.values(z.by).forEach(x=>Object.keys(tot).forEach(k=>tot[k]+=x[k]));
+  $('ztable').tBodies[0].innerHTML=Object.entries(z.by).sort((a,b)=>b[1].earnings+b[1].bounty-a[1].earnings-a[1].bounty).map(([id,x])=>`<tr><td style="font-weight:700">${id==='none'?'<span class="warn">Tracking ID not assigned</span>':esc(dom(id))}</td><td class="n">${nf(x.clicks)}</td><td class="n">${nf(x.ordered)}</td><td class="n">${nf(x.shipped)}</td><td class="n">${money(x.revenue,z.cur)}</td><td class="n"><b>${money(x.earnings,z.cur)}</b></td><td class="n">${x.bounty?money(x.bounty,z.cur):'—'}</td></tr>`).join('')+`<tr><td><b>Total</b></td><td class="n"><b>${nf(tot.clicks)}</b></td><td class="n"><b>${nf(tot.ordered)}</b></td><td class="n"><b>${nf(tot.shipped)}</b></td><td class="n"><b>${money(tot.revenue,z.cur)}</b></td><td class="n"><b>${money(tot.earnings,z.cur)}</b></td><td class="n"><b>${money(tot.bounty,z.cur)}</b></td></tr>`;
+  // Today box: newest period
+  const n0=P[0],h=zsum(`${n0.first_date}|${n0.last_date}|${n0.currency}`),ht={clicks:0,ordered:0,earnings:0};Object.values(h.by).forEach(x=>{ht.clicks+=x.clicks;ht.ordered+=x.ordered;ht.earnings+=x.earnings+x.bounty});
+  $('zrange').textContent=`· ${fmtD(n0.first_date)} to ${fmtD(n0.last_date)}`;
+  $('zk').innerHTML=[['Amazon earnings',money(ht.earnings,h.cur),'var(--org)'],['Amazon clicks',nf(ht.clicks),'var(--teal)'],['Items ordered',nf(ht.ordered),'var(--vio)']].map(k=>`<div class="kpi" style="--c:${k[2]}"><span>${k[0]}</span><strong>${k[1]}</strong></div>`).join('');
+  const age=(Date.now()-Date.parse(n0.last_date))/864e5;$('zstat').innerHTML=age>10?`<span class="pill warn">Old</span> Newest report ends ${fmtD(n0.last_date)}. Upload newer reports on the Amazon tab.`:'From your newest uploaded reports.';
+  // tracking IDs
+  const tags=[...new Set(ZR.filter(r=>r.kind==='tracking'||r.kind==='bounty').map(r=>r.row_key))].sort();
+  $('ztags').innerHTML=tags.map(t=>{const m=(ZT.find(x=>x.tag===t)||{}).site_id||'';return `<div class="secret" style="grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)"><div><b>${esc(t)}</b></div><label>Website<select data-ztag="${esc(t)}"><option value="">Not assigned</option>${sites.map(s=>`<option value="${s.id}"${s.id===m?' selected':''}>${esc(s.domain)}</option>`).join('')}</select></label></div>`}).join('')||'<p class="sub">Upload a Tracking-Id report to see your tracking IDs.</p>';
+  // Creator Connections
+  const prod={};ZR.filter(r=>r.kind==='product'&&r.asin).forEach(r=>{const x=prod[r.asin]=prod[r.asin]||{asin:r.asin,title:r.title,clicks:0,earnings:0};x.clicks+=r.clicks;x.earnings+=+r.earnings;if(!x.title&&r.title)x.title=r.title});
+  const st=a=>ZC.find(c=>c.asin===a);
+  $('cctable').tBodies[0].innerHTML=Object.values(prod).sort((a,b)=>b.earnings-a.earnings||b.clicks-a.clicks).slice(0,60).map(p=>{const c=st(p.asin);return `<tr><td><b>${esc((p.title||p.asin).slice(0,90))}</b><div class="muted" style="font-size:12px">${esc(p.asin)} · <a href="https://affiliate-program.amazon.com/p/connect/requests?status=opportunity&type=affiliate-plus&keyword=${encodeURIComponent(p.asin)}" target="_blank" rel="noopener">Search in Creator Connections ↗</a></div></td><td class="n">${nf(p.clicks)}</td><td class="n">${money(p.earnings,z.cur)}</td><td>${c?`<span class="pill ${c.state==='accepted'?'ok':'muted'}">${c.state==='accepted'?'Accepted':'No campaign'}</span> <button data-cc="${esc(p.asin)}" data-st="" style="min-height:32px;padding:2px 8px;font-size:13px">Clear</button>`:`<button data-cc="${esc(p.asin)}" data-st="accepted" style="min-height:34px;padding:4px 10px;font-size:13px">Accepted</button> <button data-cc="${esc(p.asin)}" data-st="none" style="min-height:34px;padding:4px 10px;font-size:13px">No campaign</button>`}</td></tr>`}).join('')||'<tr><td colspan="4" class="muted">Upload a Linked-Product report to see your products.</td></tr>';
+  $('zimports').innerHTML=ZI.map(i=>`<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap"><span><b>${esc(i.kind)}</b> · ${fmtD(i.first_date)}–${fmtD(i.last_date)} ${i.last_date.slice(0,4)} · ${i.rows_read} rows · ${esc(i.file||'')}</span><button data-zdel="${i.id}" style="margin-left:auto;min-height:32px;padding:2px 10px;font-size:13px">Delete</button></div>`).join('');
+}
+$('zperiod').addEventListener('change',renderAmazon);
+$('zf').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button'),files=[...$('zfile').files],f=$('zfrom').value,l=$('zto').value;
+  if(!files.length)return toast('Choose the report files first.',true);if(!f||!l||f>l)return toast('Choose the From and To dates of the report.',true);
+  b.disabled=true;const log=[];
+  try{for(const file of files){const parts=/\.zip$/i.test(file.name)?await unzip(await file.arrayBuffer()):[{name:file.name,text:await file.text()}];
+      for(const part of parts){let r;try{r=zparse(part.text)}catch(err){log.push(`${part.name}: ${err.message}`);continue}
+        if(r.kind==='skip'){log.push(`${part.name}: skipped. ${r.reason}`);continue}
+        $('zprog').textContent=`Saving ${part.name}…`;
+        await api(`shompa_amz_imports?kind=eq.${r.kind}&first_date=eq.${f}&last_date=eq.${l}&currency=eq.${r.currency}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+        const imp=(await api('shompa_amz_imports',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({kind:r.kind,file:part.name.slice(0,190),first_date:f,last_date:l,currency:r.currency,rows_read:r.rows.length})}))[0];
+        for(let i=0;i<r.rows.length;i+=500)await api('shompa_amz_rows',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(r.rows.slice(i,i+500).map(x=>({...x,import_id:imp.id,kind:r.kind})))});
+        log.push(`${part.name}: ${r.rows.length} rows (${r.kind})`)}}
+    $('zprog').textContent=log.join(' · ');$('zfile').value='';await loadAmazon();toast('Reports saved');
+  }catch(err){toast(err.message,true);$('zprog').textContent=log.join(' · ')}finally{b.disabled=false}});
+document.addEventListener('change',async e=>{const s=e.target.closest('select[data-ztag]');if(!s)return;
+  try{await api('shompa_amz_tags?on_conflict=owner,tag',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({tag:s.dataset.ztag,site_id:s.value||null})});toast('Saved');await loadAmazon()}catch(err){toast(err.message,true)}});
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.cc!=null&&b.dataset.st!=null){b.disabled=true;try{if(b.dataset.st)await api('shompa_cc?on_conflict=owner,asin',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({asin:b.dataset.cc,state:b.dataset.st,updated_at:new Date().toISOString()})});else await api(`shompa_cc?asin=eq.${encodeURIComponent(b.dataset.cc)}`,{method:'DELETE'});await loadAmazon()}catch(err){toast(err.message,true);b.disabled=false}}
+  if(b.dataset.zdel){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to delete';return}b.disabled=true;try{await api(`shompa_amz_imports?id=eq.${b.dataset.zdel}`,{method:'DELETE'});await loadAmazon()}catch(err){toast(err.message,true);b.disabled=false}}
+});
+
 /* ---------- sign-in & routing ---------- */
 if(S.key)$('keyRow').style.display='none';
 $('lf').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;
@@ -448,11 +646,12 @@ $('lf').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.
     await auth({email:$('lemail').value.trim(),password:$('lpass').value},'password');store.set('sh_key',S.key);$('lpass').value='';start()}
   catch(err){if(!store.get('sh_key'))S.key=null;toast(err.message,true)}finally{b.disabled=false}});
 $('out').addEventListener('click',e=>{e.preventDefault();S.access=null;S.refresh=null;store.set('sh_refresh',null);show('login')});
-const views=['home','agent','content','changes','sites','connections','files'];
+const views=['home','agent','content','changes','amazon','sites','connections','files'];
 function show(v){$('nav').hidden=v==='login';document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v))}
 function route(){if(!S.access&&!S.refresh)return show('login');const v=location.hash.slice(1),ok=views.includes(v)?v:'home';show(ok);if(ok==='files'){loadFiles().catch(e=>toast(e.message,true));checkSaila()}}
 addEventListener('hashchange',route);
 async function start(){try{await token();route();await load()}catch(e){S.refresh=null;store.set('sh_refresh',null);show('login');if(e.message!=='signed-out')toast(e.message,true)}}
+{const u=new URLSearchParams(location.search),q=u.get('connected'),er=u.get('connect_error');if(q||er){setTimeout(()=>q?toast(`${q[0].toUpperCase()+q.slice(1)} connected`):toast(er,true),800);history.replaceState(null,'',location.pathname+location.hash)}}
 if(S.refresh&&S.key)start();else show('login');
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
