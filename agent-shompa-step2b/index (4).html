@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#4f2fd6">
+<title>Agent Shompa</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f3f2f8,#121018);--ink:light-dark(#17142a,#eeeaf8);--panel:light-dark(#fff,#1d1a28);--mute:light-dark(#5e5a72,#a9a3bf);--line:light-dark(#e0dded,#332e45);--vio:#4f2fd6;--teal:#0f9d8a;--grn:light-dark(#18864b,#5fd497);--org:#e8890c;--red:light-dark(#c8371e,#ff8a7a);--warn:light-dark(#9a5b00,#f0b45a)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(18px,3vw,40px) max(4vw,14px);max-width:1100px;margin:0 auto}
+header{background:linear-gradient(100deg,#3a1fb8,#6a2fd6 60%,#8f2fc8);color:#fff}
+header .band{padding-block:14px 10px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+header b{font-size:22px}
+nav[hidden]{display:none}
+nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav a{flex:none;color:#fff;text-decoration:none;padding:8px 13px;border-radius:999px;min-height:44px;display:inline-flex;align-items:center}
+nav a.on{background:#fff;color:var(--vio);font-weight:700}
+h1{font-size:clamp(28px,4.6vw,42px);line-height:1.05;margin:0 0 6px}
+h2{font-size:20px;margin:0 0 10px}
+.sub{color:var(--mute);margin:0;max-width:72ch}
+.box{background:var(--panel);border-radius:16px;padding:16px;margin-top:16px;border-top:4px solid var(--c,var(--vio))}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-items:end}
+label{display:block;font-size:14px;color:var(--mute)}
+input,select{display:block;width:100%;font:inherit;font-size:16px;min-height:44px;padding:8px 10px;margin-top:4px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+button{font:inherit;font-size:15px;min-height:44px;padding:8px 16px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+button.pri{background:var(--vio);border-color:var(--vio);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--org);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--c,var(--vio));border-radius:12px;padding:12px 14px}
+.kpi span{display:block;font-size:13px;color:var(--mute)}.kpi strong{font-size:30px;line-height:1.15}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.2fr) auto;gap:10px;align-items:end;padding:12px 0;border-bottom:1px solid var(--line)}
+.row .dom{font-weight:700;align-self:center}.row .dom small{display:block;font-weight:400;color:var(--mute);font-size:13px}
+.pill{display:inline-block;font-size:13px;padding:1px 9px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.ok{color:var(--grn)}.warn{color:var(--warn)}.bad{color:var(--red)}.muted{color:var(--mute)}
+.secret{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:10px;align-items:end;padding:12px 0;border-bottom:1px solid var(--line)}
+.secret b{display:block}.secret small{color:var(--mute);font-size:13px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:15px;max-width:92vw;display:none;z-index:9}
+.fig{position:relative;min-height:240px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--mute);margin-top:8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font-weight:500;color:var(--mute);font-size:13px;padding:9px 8px;border-bottom:2px solid var(--line)}td{padding:10px 8px;border-bottom:1px solid var(--line)}td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}.up{color:var(--grn);font-weight:700}.dn{color:var(--red);font-weight:700}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:8em;margin-inline-start:-8.5em;color:var(--mute)}}
+.mask{-webkit-text-security:disc;text-security:disc}
+.view{display:none}.view.on{display:block}
+#login{max-width:440px}
+@media(max-width:700px){.row,.secret{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header><div class="band"><b>Agent Shompa</b>
+  <nav id="nav" hidden><a href="#home">Today</a><a href="#sites">Websites</a><a href="#connections">Connections</a><a href="#files">Files</a><a href="#" id="out">Sign out</a></nav>
+</div></header>
+<main>
+<section class="band view" id="v-login">
+  <div id="login" class="box">
+    <h1>Sign in</h1>
+    <p class="sub">Use the same email and password as Agent Saila.</p>
+    <form id="lf" style="display:grid;gap:12px;margin-top:14px">
+      <label id="keyRow">Supabase publishable key (asked once on this device)<input id="lkey" autocomplete="off" placeholder="sb_publishable_… or eyJ…"></label>
+      <label>Email<input id="lemail" type="email" autocomplete="username" required></label>
+      <label>Password<input id="lpass" type="password" autocomplete="current-password" required></label>
+      <button class="pri">Sign in</button>
+    </form>
+  </div>
+</section>
+
+<section class="band view" id="v-home">
+  <h1>Today</h1>
+  <div class="box" style="--c:var(--teal)">
+    <h2 style="display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center">Bing <small class="muted" id="brange" style="font-size:14px;font-weight:400"></small>
+      <button id="bsync" style="margin-left:auto;min-height:38px;padding:6px 14px">Refresh from Bing</button></h2>
+    <p class="sub" id="bstat" style="font-size:14px"></p>
+    <div class="kpis" id="bk" style="margin-top:12px"></div>
+    <h2 style="margin-top:20px;font-size:17px">Bing clicks per day <small class="muted" style="font-size:13px;font-weight:400">all websites, stacked by website</small></h2>
+    <div class="fig"><svg id="bchart" role="img" aria-label="Bing clicks per day, stacked by website"></svg></div>
+    <div class="legend" id="blegend"></div>
+  </div>
+  <div class="box"><h2>Websites on Bing <small class="muted" style="font-size:13px;font-weight:400">last 28 days vs the 28 before</small></h2><div class="scroll"><table class="stack" id="btable"><thead><tr><th>Website</th><th class="n">Clicks</th><th class="n">Change</th><th class="n">Impressions</th><th class="n">Avg position</th><th class="n">Keywords</th><th class="n">Top 10</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="kpis" id="hk" style="margin-top:16px"></div>
+  <div class="box" style="--c:var(--teal)"><h2>Link with Agent Saila</h2><p class="sub" id="saila">Checking…</p></div>
+</section>
+
+<section class="band view" id="v-sites">
+  <h1>Websites</h1>
+  <p class="sub">The WordPress app password is saved encrypted. No screen ever shows it again; you can only replace or delete it.</p>
+  <div class="box"><h2>Add a website</h2>
+    <form class="form" id="af"><label>Website address<input id="adom" placeholder="example.com" autocomplete="off" required></label>
+      <label>Type<select id="atype"><option value="textile">Textile (author: Kamrul Islam)</option><option value="other">Other</option></select></label>
+      <button class="pri">Add website</button></form></div>
+  <div class="box"><h2>Your websites <small class="muted" id="scount"></small></h2><div id="slist"></div></div>
+</section>
+
+<section class="band view" id="v-connections">
+  <h1>Connections</h1>
+  <p class="sub">Keys are saved encrypted in Supabase Vault and are never shown again. A green tick only means a key is saved. Each one is tested when its feature is built.</p>
+  <div class="box"><h2>AI for writing and audits</h2>
+    <div class="form"><label>AI provider<select id="aip"><option value="claude">Claude</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></label>
+    <label>Model (optional)<input id="aim" name="shompa-ai-model" autocomplete="off" data-lpignore="true" placeholder="Leave empty for the best model"></label><button id="aisave">Save choice</button></div></div>
+  <div class="box" style="--c:var(--teal)"><h2>API keys</h2><div id="glist"></div></div>
+</section>
+<section class="band view" id="v-files">
+  <h1>Files</h1>
+  <p class="sub">Lab reports, fastness reports and photos for the knowledge brain. They are stored privately in Cloudflare R2, and Supabase keeps only the name and note. Photos are shrunk to about 300 KB before upload.</p>
+  <div class="box" style="--c:var(--teal)"><h2>File vault</h2><p class="sub" id="vault">Checking…</p></div>
+  <div class="box"><h2>Upload</h2>
+    <form class="form" id="uf">
+      <label>Files<input type="file" id="ufile" multiple accept="image/*,.pdf,.xlsx,.xls,.csv,.docx,.txt"></label>
+      <label>What is it<select id="ucat"><option value="lab_report">Lab report</option><option value="fastness">Fastness report</option><option value="dev_swatch">Development swatch</option><option value="problem_photo">Problem photo</option><option value="other">Other</option></select></label>
+      <label>Note (SR, batch, buyer…)<input id="unote" autocomplete="off"></label>
+      <button class="pri">Upload</button>
+    </form>
+    <p class="sub" id="uprog" style="margin-top:10px"></p></div>
+  <div class="box"><h2>Stored files <small class="muted" id="fcount"></small></h2><div id="flist"></div></div>
+</section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+const URLB='https://rlmbhjgnpxyndqlbijxw.supabase.co';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+let S={key:store.get('sh_key'),access:null,refresh:store.get('sh_refresh'),exp:0};
+const toast=(m,bad)=>{const t=$('toast');t.textContent=m;t.style.background=bad?'var(--red)':'';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3500)};
+
+async function auth(body,grant){
+  const r=await fetch(`${URLB}/auth/v1/token?grant_type=${grant}`,{method:'POST',headers:{apikey:S.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error_description||j.msg||'Sign-in failed');
+  S.access=j.access_token;S.refresh=j.refresh_token;S.exp=Date.now()+(j.expires_in-60)*1000;store.set('sh_refresh',S.refresh);
+}
+async function token(){if(!S.access||Date.now()>S.exp){if(!S.refresh)throw new Error('signed-out');await auth({refresh_token:S.refresh},'refresh_token')}return S.access}
+async function api(path,opt={}){
+  const t=await token();
+  const r=await fetch(`${URLB}/rest/v1/${path}`,{...opt,headers:{apikey:S.key,Authorization:`Bearer ${t}`,'Content-Type':'application/json',...(opt.headers||{})}});
+  const txt=await r.text();let j=null;try{j=txt?JSON.parse(txt):null}catch(e){}
+  if(!r.ok)throw new Error((j&&(j.message||j.hint))||`Error ${r.status}`);
+  return j;
+}
+const rpc=(fn,args)=>api(`rpc/${fn}`,{method:'POST',body:JSON.stringify(args)});
+
+/* ---------- data ---------- */
+let sites=[],secrets=[];
+async function load(){
+  [sites,secrets]=await Promise.all([api('shompa_sites?select=*&deleted_at=is.null&order=created_at'),api('shompa_secret_index?select=name,site_id,updated_at')]);
+  const s=await api('shompa_settings?select=*');if(s&&s[0]){$('aip').value=s[0].ai_provider;$('aim').value=s[0].ai_model||''}
+  renderSites();renderConns();renderHome();
+}
+const has=(name,site)=>secrets.find(x=>x.name===name&&(x.site_id||null)===(site||null));
+const when=s=>new Date(s.updated_at).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
+
+function renderHome(){
+  const tx=sites.filter(s=>s.site_type==='textile').length,pw=sites.filter(s=>has('wp_app_password',s.id)).length,keys=GLOBAL.filter(g=>has(g[0])).length;
+  $('hk').innerHTML=[['Websites',sites.length,'var(--vio)'],['Textile websites',tx,'var(--teal)'],['WordPress logins saved',`${pw}/${sites.length}`,'var(--org)'],['API keys saved',`${keys}/${GLOBAL.length}`,'var(--grn)']].map(k=>`<div class="kpi" style="--c:${k[2]}"><span>${k[0]}</span><strong>${k[1]}</strong></div>`).join('');
+  countRows('dev_notes?select=id&deleted_at=is.null').then(n=>{$('saila').innerHTML=`<span class="pill ok">Linked</span> ${n} Development notes from Agent Saila are readable here.`}).catch(e=>{$('saila').innerHTML=`<span class="pill bad">Not linked</span> ${esc(e.message)}`});
+  loadBing();
+}
+async function countRows(path){
+  const t=await token();
+  const r=await fetch(`${URLB}/rest/v1/${path}`,{method:'HEAD',headers:{apikey:S.key,Authorization:`Bearer ${t}`,Prefer:'count=exact',Range:'0-0'}});
+  if(!r.ok&&r.status!==206)throw new Error(`Error ${r.status}`);
+  return +((r.headers.get('content-range')||'').split('/')[1]||0);
+}
+
+/* ---------- Bing (Step 3) ---------- */
+const COL=['#0f9d8a','#4f2fd6','#e8890c','#2a6fdb','#c8371e','#18864b','#b0379c','#7a6a12','#5a6b7d','#d4568b','#3b8ea5','#8a5a2b'];
+const nf=n=>Math.round(n).toLocaleString();
+const pct=(a,b)=>b?Math.round((a-b)/b*1000)/10:null;
+const chg=p=>p==null?'':`<b class="${p<0?'dn':'up'}">${p<0?'▼':'▲'} ${Math.abs(p)}%</b>`;
+let bing=null,syncing=false;
+async function loadBing(autoSync=true){
+  try{bing=await rpc('shompa_bing_overview',{p_days:28});renderBing()}
+  catch(e){$('bstat').innerHTML=`<span class="pill bad">Not ready</span> ${esc(e.message)}`;return}
+  const last=Math.max(0,...bing.sync.map(s=>+new Date(s.ran_at)));
+  if(autoSync&&has('bing_api_key')&&Date.now()-last>6*3600e3)syncBing();
+}
+async function syncBing(){
+  if(syncing)return;syncing=true;const b=$('bsync');b.disabled=true;b.textContent='Getting Bing data…';
+  try{const t=await token();
+    const r=await fetch(`${URLB}/functions/v1/shompa-bing`,{method:'POST',headers:{apikey:S.key,Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify({action:'sync'})});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||`Bing sync error ${r.status}`);
+    const bad=j.results.filter(x=>!x.ok).length;toast(bad?`Bing updated. ${bad} website${bad>1?'s':''} need attention.`:'Bing data updated');
+    await loadBing(false);
+  }catch(e){toast(e.message,true)}finally{syncing=false;b.disabled=false;b.textContent='Refresh from Bing'}
+}
+function renderBing(){
+  const S2=bing.sites,on=S2.filter(s=>s.clicks||s.impressions||s.keywords);
+  const sum=k=>S2.reduce((n,s)=>n+(+s[k]||0),0);
+  const c=sum('clicks'),pc=sum('prev_clicks'),im=sum('impressions'),pim=sum('prev_impressions'),pw=sum('pw'),pi=sum('pi');
+  const ends=on.map(s=>s.end).filter(Boolean).sort();
+  const sy=bing.sync.length?new Date(Math.max(...bing.sync.map(s=>+new Date(s.ran_at)))):null;
+  $('brange').textContent=ends.length?`· ${fmtD(on[0]&&minD(on.map(s=>s.start)))} to ${fmtD(ends[ends.length-1])}`:'';
+  $('bstat').innerHTML=!has('bing_api_key')?'<span class="pill warn">No Bing key</span> Save your Bing Webmaster API key on the Connections tab.':!sy?'Getting your Bing data for the first time…':`Updated from Bing ${sy.toLocaleString([],{dateStyle:'medium',timeStyle:'short'})}. Bing's data is usually 2–3 days behind.`;
+  const kp=(l,v,ch,col,sub)=>`<div class="kpi" style="--c:${col}"><span>${l}</span><strong>${v}</strong>${ch?`<div style="font-size:13px">${ch}</div>`:''}${sub?`<div class="muted" style="font-size:13px">${sub}</div>`:''}</div>`;
+  $('bk').innerHTML=kp('Bing clicks',nf(c),chg(pct(c,pc)),'var(--teal)')+kp('Bing impressions',nf(im),chg(pct(im,pim)),'var(--vio)')+kp('Average position',pi?(pw/pi).toFixed(1):'—','','var(--grn)')
+   +kp('Bing keywords',nf(sum('keywords')),'','var(--org)',`${nf(sum('top10'))} in top 10`)+kp('Keywords moved',`<b class="up">▲${sum('up')}</b> <b class="dn">▼${sum('down')}</b>`,'','#2a6fdb')+kp('Websites on Bing',`${on.length}/${S2.length}`,'','#5a6b7d');
+  const syncOf=id=>bing.sync.find(x=>x.site_id===id);
+  $('btable').tBodies[0].innerHTML=S2.map(s=>{const y=syncOf(s.site_id);const st=y?(y.ok?'<span class="pill ok">OK</span>':`<span class="pill bad" title="${esc(y.message)}">Problem</span><div class="muted" style="font-size:12px;white-space:normal;max-width:24ch">${esc(y.message)}</div>`):'<span class="pill warn">Waiting</span>';
+    return `<tr><td class="site" style="font-weight:700">${esc(s.domain)}</td><td class="n">${nf(s.clicks)}</td><td class="n">${chg(pct(s.clicks,s.prev_clicks))||'—'}</td><td class="n">${nf(s.impressions)}</td><td class="n">${s.position??'—'}</td><td class="n">${nf(s.keywords)}</td><td class="n">${nf(s.top10)}</td><td>${st}</td></tr>`}).join('');
+  $('blegend').innerHTML=on.map(s=>`<span><i style="background:${COL[S2.indexOf(s)%COL.length]}"></i>${esc(s.domain)}</span>`).join('');
+  drawBing();
+}
+const minD=a=>a.filter(Boolean).sort()[0];
+const fmtD=d=>d?new Date(d+'T00:00:00Z').toLocaleDateString([],{day:'numeric',month:'short',timeZone:'UTC'}):'';
+function drawBing(){
+  const s=$('bchart');if(!bing||!s)return;const W=s.clientWidth,H=s.clientHeight;if(!W)return;
+  const days=[...new Set(bing.daily.map(d=>d.day))].sort();
+  if(!days.length){s.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="var(--mute)" font-size="14">No Bing data yet</text>`;return}
+  const idx=Object.fromEntries(bing.sites.map((x,i)=>[x.site_id,i]));
+  const grid=days.map(()=>bing.sites.map(()=>0));bing.daily.forEach(d=>{const i=days.indexOf(d.day);if(i>=0&&idx[d.site_id]!=null)grid[i][idx[d.site_id]]+=d.clicks});
+  const tot=grid.map(r=>r.reduce((a,b)=>a+b,0)),step=Math.max(5,Math.ceil(Math.max(...tot,1)/4/5)*5),mx=step*4,pl=40,pb=24,bw=(W-pl)/days.length;
+  let o='';for(let g=0;g<=4;g++){const y=H-pb-(H-pb-8)*g/4;o+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--mute)">${step*g}</text>`}
+  days.forEach((d,i)=>{let y=H-pb;grid[i].forEach((v,j)=>{if(!v)return;const hh=(H-pb-8)*v/mx;y-=hh;o+=`<rect x="${(pl+i*bw+1).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${hh.toFixed(1)}" fill="${COL[j%COL.length]}"><title>${esc(bing.sites[j].domain)} · ${fmtD(d)}: ${v} clicks</title></rect>`});
+    if(i%7===0||i===days.length-1)o+=`<text x="${pl+i*bw+bw/2}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--mute)">${fmtD(d)}</text>`});
+  s.innerHTML=o;
+}
+new ResizeObserver(()=>drawBing()).observe(document.getElementById('bchart'));
+function renderSites(){
+  $('scount').textContent=`(${sites.length})`;
+  $('slist').innerHTML=sites.map(s=>{const p=has('wp_app_password',s.id);return `<div class="row" data-id="${s.id}">
+   <div class="dom">${esc(s.domain)}<label style="margin-top:6px">Type<select data-f="type"><option value="textile"${s.site_type==='textile'?' selected':''}>Textile (author: Kamrul Islam)</option><option value="other"${s.site_type!=='textile'?' selected':''}>Other</option></select></label></div>
+   <label>WordPress username<input data-f="wpu" name="shompa-wpu-${s.id}" value="${esc(s.wp_username)}" autocomplete="off" data-lpignore="true"></label>
+   <label>App password ${p?`<span class="pill ok">Saved ${when(p)}</span>`:'<span class="pill warn">Not saved</span>'}<input data-f="wpp" type="text" name="shompa-wpp-${s.id}" autocomplete="off" data-lpignore="true" spellcheck="false" class="mask" placeholder="${p?'Type a new one to replace':'xxxx xxxx xxxx xxxx'}"></label>
+   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-save>Save</button><button data-del>Remove</button></div></div>`}).join('')||'<p class="sub">No websites yet. Add your first one above.</p>';
+}
+const GLOBAL=[['bing_api_key','Bing Webmaster API key','Bing Webmaster Tools → Settings → API access'],['ai_key_claude','Claude API key','console.anthropic.com'],['ai_key_openai','OpenAI API key','platform.openai.com'],['ai_key_gemini','Gemini API key','aistudio.google.com'],['ubersuggest_api_key','Ubersuggest API key','Ubersuggest account → API'],['amazon_creators_id','Amazon Creators API credential ID','Associates Central → Tools → Creators API'],['amazon_creators_secret','Amazon Creators API secret','Associates Central → Tools → Creators API']];
+function renderConns(){
+  $('glist').innerHTML=GLOBAL.map(([n,l,w])=>{const p=has(n);return `<div class="secret" data-n="${n}"><div><b>${l}</b><small>Where to find it: ${w}</small><br>${p?`<span class="pill ok">✓ Saved ${when(p)}</span>`:'<span class="pill warn">Not saved</span>'}</div>
+   <label>${p?'Replace with a new key':'Paste key'}<input type="text" name="shompa-key-${n}" autocomplete="off" data-lpignore="true" spellcheck="false" class="mask"></label>
+   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pri" data-gs>Save</button>${p?'<button data-gd>Delete</button>':''}</div></div>`}).join('');
+}
+
+/* ---------- actions ---------- */
+async function run(btn,fn,ok){btn.disabled=true;try{await fn();if(ok)toast(ok);await load()}catch(e){if(e.message==='signed-out')return show('login');toast(e.message,true)}finally{btn.disabled=false}}
+$('af').addEventListener('submit',e=>{e.preventDefault();const d=$('adom').value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');
+  if(!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(d))return toast('That doesn\'t look like a website address.',true);
+  if(sites.some(s=>s.domain===d))return toast(`${d} is already in your list. Change its type in the list below.`,true);
+  run(e.submitter||e.target.querySelector('button'),()=>api('shompa_sites?on_conflict=owner,domain',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({domain:d,site_type:$('atype').value,author_name:$('atype').value==='textile'?'Kamrul Islam':null,deleted_at:null})}).then(()=>{$('adom').value=''}),`${d} added`)});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  const row=b.closest('.row');
+  if(b.hasAttribute('data-save')){const id=row.dataset.id,u=row.querySelector('[data-f=wpu]').value.trim(),p=row.querySelector('[data-f=wpp]').value.trim(),ty=row.querySelector('[data-f=type]').value;
+    run(b,async()=>{await api(`shompa_sites?id=eq.${id}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({wp_username:u||null,site_type:ty,author_name:ty==='textile'?'Kamrul Islam':null})});if(p)await rpc('shompa_save_secret',{p_name:'wp_app_password',p_value:p,p_site:id})},'Saved')}
+  if(b.hasAttribute('data-del')){const id=row.dataset.id;if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to remove';return}
+    run(b,()=>api(`shompa_sites?id=eq.${id}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})}),'Website removed')}
+  const sec=b.closest('.secret');
+  if(b.hasAttribute('data-gs')){const v=sec.querySelector('input').value.trim();if(!v)return toast('Paste the key first.',true);run(b,()=>rpc('shompa_save_secret',{p_name:sec.dataset.n,p_value:v,p_site:null}),'Key saved')}
+  if(b.hasAttribute('data-gd')){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to delete';return}run(b,()=>rpc('shompa_delete_secret',{p_name:sec.dataset.n,p_site:null}),'Key deleted')}
+});
+$('bsync').addEventListener('click',()=>syncBing());
+$('aisave').addEventListener('click',e=>run(e.currentTarget,()=>api('shompa_settings',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({ai_provider:$('aip').value,ai_model:$('aim').value.trim()||null,updated_at:new Date().toISOString()})}),'AI choice saved'));
+
+/* ---------- file vault (Cloudflare R2 via the shompa-files function) ---------- */
+async function vault(body){
+  const t=await token();
+  const r=await fetch(`${URLB}/functions/v1/shompa-files`,{method:'POST',headers:{apikey:S.key,Authorization:`Bearer ${t}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||`File vault error ${r.status}`);
+  return j;
+}
+/* Photos: longest side 1600 px, JPEG. Keeps detail for shade/fault photos at ~200–400 KB. */
+async function shrink(file){
+  if(!/^image\/(jpeg|png|webp|heic|heif)$/i.test(file.type))return {blob:file,name:file.name,type:file.type||'application/octet-stream'};
+  try{
+    const bmp=await createImageBitmap(file);const m=1600,k=Math.min(1,m/Math.max(bmp.width,bmp.height));
+    const c=document.createElement('canvas');c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+    c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+    const blob=await new Promise(res=>c.toBlob(res,'image/jpeg',0.82));
+    if(!blob||blob.size>=file.size)return {blob:file,name:file.name,type:file.type};
+    return {blob,name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg'};
+  }catch(e){return {blob:file,name:file.name,type:file.type}}
+}
+const kb=n=>!n?'0 KB':n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+const CAT={lab_report:'Lab report',fastness:'Fastness report',dev_swatch:'Development swatch',problem_photo:'Problem photo',other:'Other'};
+let files=[];
+async function loadFiles(){
+  vault({action:'ping'}).then(()=>{$('vault').innerHTML='<span class="pill ok">Connected</span> Cloudflare R2 bucket is ready.'}).catch(e=>{$('vault').innerHTML=`<span class="pill bad">Not ready</span> ${esc(e.message)}`});
+  files=await api('shompa_files?select=*&deleted_at=is.null&order=created_at.desc&limit=500');
+  const total=files.reduce((n,f)=>n+(+f.size_bytes||0),0);
+  $('fcount').textContent=`(${files.length} · ${kb(total)} used of 10 GB free)`;
+  $('flist').innerHTML=files.map(f=>`<div class="row" data-fid="${f.id}" data-key="${esc(f.r2_key)}" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto">
+    <div class="dom">${esc(f.file_name)}<small>${CAT[f.category]||f.category} · ${kb(+f.size_bytes||0)} · ${new Date(f.created_at).toLocaleDateString()}${f.source_app==='saila'?' · from Saila':''}</small></div>
+    <div class="muted" style="align-self:center">${esc(f.note)}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button data-open>Open</button><button data-fdel>Delete</button></div></div>`).join('')||'<p class="sub">No files yet.</p>';
+}
+$('uf').addEventListener('submit',async e=>{e.preventDefault();const list=[...$('ufile').files];if(!list.length)return toast('Choose a file first.',true);
+  const b=e.target.querySelector('button');b.disabled=true;let done=0;
+  try{for(const f of list){
+      if(f.size>50*1048576)throw new Error(`${f.name} is larger than 50 MB.`);
+      $('uprog').textContent=`Uploading ${done+1} of ${list.length}: ${f.name}…`;
+      const s=await shrink(f);
+      const {key,url}=await vault({action:'upload',folder:$('ucat').value,fileName:s.name});
+      const put=await fetch(url,{method:'PUT',headers:{'Content-Type':s.type},body:s.blob});
+      if(!put.ok)throw new Error(`Upload to R2 failed (${put.status}). Check the bucket's CORS setting.`);
+      await api('shompa_files',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({r2_key:key,file_name:s.name,content_type:s.type,size_bytes:s.blob.size,category:$('ucat').value,note:$('unote').value.trim()||null})});
+      done++;}
+    $('uprog').textContent=`${done} file${done>1?'s':''} uploaded.`;$('ufile').value='';$('unote').value='';await loadFiles();
+  }catch(err){$('uprog').textContent='';toast(err.message,true)}finally{b.disabled=false}});
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const r=b.closest('[data-fid]');if(!r)return;
+  if(b.hasAttribute('data-open')){const w=window.open('','_blank');try{const {url}=await vault({action:'download',key:r.dataset.key});if(w)w.location=url;else location.href=url}catch(err){if(w)w.close();toast(err.message,true)}}
+  if(b.hasAttribute('data-fdel')){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textContent='Tap again to delete';return}
+    b.disabled=true;try{await vault({action:'delete',key:r.dataset.key});await api(`shompa_files?id=eq.${r.dataset.fid}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({deleted_at:new Date().toISOString()})});toast('File deleted');await loadFiles()}catch(err){toast(err.message,true);b.disabled=false}}
+});
+
+/* ---------- sign-in & routing ---------- */
+if(S.key)$('keyRow').style.display='none';
+$('lf').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;
+  try{if(!S.key){S.key=$('lkey').value.trim();if(!S.key)throw new Error('Paste the publishable key first.')}
+    await auth({email:$('lemail').value.trim(),password:$('lpass').value},'password');store.set('sh_key',S.key);$('lpass').value='';start()}
+  catch(err){if(!store.get('sh_key'))S.key=null;toast(err.message,true)}finally{b.disabled=false}});
+$('out').addEventListener('click',e=>{e.preventDefault();S.access=null;S.refresh=null;store.set('sh_refresh',null);show('login')});
+const views=['home','sites','connections','files'];
+function show(v){$('nav').hidden=v==='login';document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v))}
+function route(){if(!S.access&&!S.refresh)return show('login');const v=location.hash.slice(1),ok=views.includes(v)?v:'home';show(ok);if(ok==='files')loadFiles().catch(e=>toast(e.message,true))}
+addEventListener('hashchange',route);
+async function start(){try{await token();route();await load()}catch(e){S.refresh=null;store.set('sh_refresh',null);show('login');if(e.message!=='signed-out')toast(e.message,true)}}
+if(S.refresh&&S.key)start();else show('login');
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
